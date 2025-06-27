@@ -1,0 +1,1 @@
+ create the execution plan by reading the PRD. Ensure things are done in a small sequential step-by-step process.
