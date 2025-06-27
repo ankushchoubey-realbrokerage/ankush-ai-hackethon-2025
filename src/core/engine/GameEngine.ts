@@ -17,6 +17,10 @@ import { useWeaponStore } from '../../store/weaponStore';
 import { ParticleSystem } from '../../effects/ParticleSystem';
 import { EnvironmentalHazardManager } from '../../levels/environments/EnvironmentalHazardManager';
 import { Explosion } from '../../effects/Explosion';
+import { FogSystem } from '../../effects/FogSystem';
+import { BossManager } from '../../entities/bosses/BossSystem';
+import { TankZombie } from '../../entities/bosses/TankZombie';
+import { useBossStore } from '../../store/bossStore';
 
 export class GameEngine {
   private renderer: THREE.WebGLRenderer;
@@ -57,6 +61,11 @@ export class GameEngine {
   // STEP 37: Screen shake for explosions
   private screenShakeIntensity: number = 0;
   private originalCameraPosition: THREE.Vector3 | null = null;
+  
+  // STEP 38: Fog System
+  private fogSystem: FogSystem;
+  // STEP 40: Boss System
+  private bossManager: BossManager;
 
   constructor(container: HTMLElement, onGameOver: () => void) {
     this.container = container;
@@ -68,13 +77,14 @@ export class GameEngine {
       antialias: true,
       powerPreference: "high-performance",
       stencil: false,
-      depth: true
+      depth: true,
+      logarithmicDepthBuffer: true // Helps prevent z-fighting
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap at 2 for performance
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.shadowMap.autoUpdate = false; // Manual shadow updates for performance
+    this.renderer.shadowMap.autoUpdate = true; // Auto update to prevent flickering
     
     // Chrome-specific optimizations
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -129,6 +139,19 @@ export class GameEngine {
     // STEP 35: Initialize environmental hazard manager
     this.environmentalHazardManager = new EnvironmentalHazardManager();
     
+    // STEP 38: Initialize fog system
+    this.fogSystem = new FogSystem(this.scene);
+    this.fogSystem.setAudioManager(this.audioManager);
+    
+    // STEP 40: Initialize boss system
+    this.bossManager = new BossManager();
+    this.bossManager.setAudioManager(this.audioManager);
+    this.bossManager.setParticleSystem(this.particleSystem);
+    this.setupBossCallbacks();
+    
+    // Make boss manager globally accessible for TankZombie
+    (window as any).bossManager = this.bossManager;
+    
     this.init();
     
     // STEP 36: Initialize extended hazard system after scene is ready
@@ -143,6 +166,7 @@ export class GameEngine {
     this.zombieManager.setScene(this.scene);
     this.zombieManager.setPhysicsEngine(this.physicsEngine);
     this.zombieManager.setAudioManager(this.audioManager); // STEP 28: Set audio manager
+    this.zombieManager.setFogSystem(this.fogSystem); // STEP 38: Set fog system
     this.projectileManager.setScene(this.scene);
     this.projectileManager.setPhysicsEngine(this.physicsEngine);
     this.projectileManager.setAudioManager(this.audioManager); // STEP 37: Set audio for explosions
@@ -215,12 +239,189 @@ export class GameEngine {
     
     // Load first level and start first wave
     this.levelManager.loadLevel(1);
+    this.configureLevelEnvironment();
     
     // Start first wave after a short delay
     setTimeout(() => {
       console.log('Starting first wave of level 1...');
       this.levelManager.startNextWave();
     }, 2000); // 2 second delay before first wave
+  }
+  
+  private configureLevelEnvironment(): void {
+    const currentLevel = this.levelManager.getCurrentLevel();
+    if (!currentLevel) return;
+    
+    // Stop any existing ambient sounds
+    this.audioManager.stopCategory('ambient');
+    
+    // Configure fog and audio based on level theme
+    switch (currentLevel.theme) {
+      case 'forest':
+        // Enable dense fog for forest level
+        this.fogSystem.enable(0.025, '#3a4a3a');
+        // Also update scene fog
+        this.scene.fog = new THREE.FogExp2(0x3a4a3a, 0.025);
+        // Start forest ambience
+        this.audioManager.startForestAmbience();
+        // Load forest map assets
+        this.loadForestMap();
+        break;
+      case 'industrial':
+        // Light fog for industrial level
+        this.fogSystem.enable(0.01, '#666666');
+        this.scene.fog = new THREE.FogExp2(0x666666, 0.01);
+        // Start industrial ambience
+        this.audioManager.startIndustrialAmbience();
+        // Load industrial map assets
+        this.loadIndustrialMap();
+        break;
+      case 'simple-map':
+      case 'city-streets':
+      default:
+        // Disable fog for other levels
+        this.fogSystem.disable();
+        // Use default scene fog
+        this.scene.fog = new THREE.Fog(0x87CEEB, 50, 150);
+        break;
+    }
+  }
+  
+  private loadForestMap(): void {
+    // Import and load the forest map
+    import('../../levels/maps/ForestMap').then(({ ForestMap }) => {
+      const forestMap = new ForestMap(this.scene);
+      forestMap.load();
+      
+      // Register obstacles with physics engine
+      const obstacles = forestMap.getObstacles();
+      obstacles.forEach(obstacle => {
+        // Create a simple entity wrapper for physics
+        const obstacleEntity = {
+          id: `forest-obstacle-${Math.random()}`,
+          type: 'obstacle' as const,
+          transform: {
+            position: {
+              x: obstacle.position.x,
+              y: obstacle.position.y,
+              z: obstacle.position.z
+            },
+            rotation: { x: 0, y: 0, z: 0 },
+            scale: { x: 1, y: 1, z: 1 }
+          },
+          boundingBox: {
+            min: { x: -1, y: 0, z: -1 },
+            max: { x: 1, y: 3, z: 1 }
+          },
+          active: true
+        };
+        this.physicsEngine.addEntity(obstacleEntity);
+      });
+    });
+  }
+  
+  private loadIndustrialMap(): void {
+    // Import and load the industrial map
+    import('../../levels/maps/IndustrialMap').then(({ IndustrialMap }) => {
+      const industrialMap = new IndustrialMap(this.scene);
+      industrialMap.load(this.particleSystem);
+      
+      // Store reference for updates
+      (this as any).industrialMap = industrialMap;
+      
+      // Register obstacles with physics engine
+      const obstacles = industrialMap.getObstacles();
+      obstacles.forEach(obstacle => {
+        const obstacleEntity = {
+          id: `industrial-obstacle-${Math.random()}`,
+          type: 'obstacle' as const,
+          transform: {
+            position: {
+              x: obstacle.position.x,
+              y: obstacle.position.y,
+              z: obstacle.position.z
+            },
+            rotation: { x: 0, y: 0, z: 0 },
+            scale: { x: 1, y: 1, z: 1 }
+          },
+          boundingBox: {
+            min: { x: -2, y: 0, z: -2 },
+            max: { x: 2, y: 4, z: 2 }
+          },
+          active: true
+        };
+        this.physicsEngine.addEntity(obstacleEntity);
+      });
+    });
+  }
+  
+  private setupBossCallbacks(): void {
+    const bossStore = useBossStore.getState();
+    
+    this.bossManager.setCallbacks({
+      onBossSpawn: (boss) => {
+        bossStore.setBoss(boss);
+        console.log('Boss spawned:', boss.name);
+      },
+      onPhaseChange: (boss, phase) => {
+        bossStore.setBossPhase(phase);
+        
+        // Show warning for special attacks
+        if (phase === 2) {
+          bossStore.showSpecialAttackWarning('Boss Enraged! Ground Slam Attack Unlocked!');
+        } else if (phase === 3) {
+          bossStore.showSpecialAttackWarning('Boss Berserk! Maximum Rage!');
+        }
+      },
+      onSpecialAttack: (boss, attackName) => {
+        bossStore.showSpecialAttackWarning(attackName);
+      },
+      onBossDamaged: (boss, damage) => {
+        bossStore.updateBossHealth(boss.health, damage);
+      },
+      onBossDefeat: (boss) => {
+        bossStore.hideBossUI();
+        
+        // Add bonus score
+        const gameStore = useGameStore.getState();
+        gameStore.addScore(5000); // Boss defeat bonus
+        
+        // Show victory message after delay
+        setTimeout(() => {
+          console.log('Boss defeated! Victory!');
+          // Could trigger level completion here
+        }, 3000);
+      }
+    });
+  }
+  
+  private spawnBoss(): void {
+    const currentLevel = this.levelManager.getCurrentLevel();
+    if (!currentLevel || currentLevel.theme !== 'industrial') return;
+    
+    // Spawn Tank Zombie boss in the arena
+    const bossPosition = { x: 0, y: 0, z: -30 }; // Arena center
+    const tankBoss = new TankZombie(bossPosition);
+    
+    // Set up boss systems
+    tankBoss.setAudioManager(this.audioManager);
+    tankBoss.setParticleSystem(this.particleSystem);
+    tankBoss.setOnSummonCallback((position) => {
+      // Spawn regular zombie at position
+      this.zombieManager.spawnZombie(position, 'basic');
+    });
+    
+    // Add to scene
+    this.scene.add(tankBoss.getMesh());
+    
+    // Register with physics
+    this.physicsEngine.addEntity(tankBoss);
+    
+    // Add to zombie manager for updates
+    (this.zombieManager as any).zombies.set(tankBoss.id, tankBoss);
+    
+    // Start boss fight
+    this.bossManager.startBossFight(tankBoss);
   }
 
   public start(): void {
@@ -299,6 +500,9 @@ export class GameEngine {
     // Update zombies
     this.zombieManager.update(deltaTime, this.player.getPosition());
     
+    // STEP 40: Update boss manager
+    this.bossManager.update(deltaTime, this.player.getPosition());
+    
     // Update projectiles
     this.projectileManager.update(deltaTime);
     
@@ -367,6 +571,32 @@ export class GameEngine {
     // Update screen shake
     this.updateScreenShake(deltaTime);
     
+    // STEP 38: Update fog system (for lightning effects)
+    const ambientLight = this.scene.children.find(child => child instanceof THREE.AmbientLight) as THREE.AmbientLight;
+    this.fogSystem.update(deltaTime, ambientLight);
+    
+    // STEP 39: Update industrial map mechanics if loaded
+    if ((this as any).industrialMap) {
+      const industrialMap = (this as any).industrialMap;
+      industrialMap.update(deltaTime);
+      
+      // Apply conveyor belt movement to entities
+      const allEntities = [this.player, ...this.zombieManager.getZombies()];
+      industrialMap.getConveyorBelts().forEach((belt: any) => {
+        allEntities.forEach(entity => {
+          belt.applyMovement(entity, deltaTime);
+        });
+      });
+      
+      // Check hazard collisions
+      industrialMap.getHazards().forEach((hazard: any) => {
+        allEntities.forEach(entity => {
+          if (hazard.checkCollision(entity)) {
+            hazard.applyEffect(entity);
+          }
+        });
+      });
+    }
     // Update collision debug visualization
     if (this.collisionDebugger.isEnabled()) {
       // Update player debug box
@@ -405,11 +635,6 @@ export class GameEngine {
   }
 
   private render(): void {
-    // Update shadows periodically for performance
-    if (this.clock.getElapsedTime() % 0.1 < 0.016) { // Update every ~100ms
-      this.renderer.shadowMap.needsUpdate = true;
-    }
-    
     this.renderer.render(this.scene, this.camera);
   }
   
@@ -530,6 +755,12 @@ export class GameEngine {
       
       // STEP 28: Initialize zombie sounds
       await this.audioManager.initializeZombieSounds();
+      
+      // STEP 38: Initialize forest sounds
+      await this.audioManager.initializeForestSounds();
+      
+      // STEP 39: Initialize industrial sounds
+      await this.audioManager.initializeIndustrialSounds();
       
     } catch (error) {
       console.error('Failed to initialize audio:', error);

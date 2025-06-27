@@ -47,6 +47,32 @@ export class AudioManager {
     explosion: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA'
   };
 
+  // STEP 39: Industrial ambient sound placeholder data
+  private static readonly INDUSTRIAL_SOUNDS = {
+    // Industrial ambience - machinery, hums, clanks
+    industrial_ambience: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // Steam hiss
+    steam_hiss: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // Metal clank
+    metal_clank: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // Alarm sound
+    alarm_sound: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // Electrical buzzing
+    electrical_buzz: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA'
+  };
+
+  // STEP 38: Forest ambient sound placeholder data
+  private static readonly FOREST_SOUNDS = {
+    // Forest ambience - birds, wind, rustling
+    forest_ambience: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // Distant thunder/creepy ambience
+    forest_creepy: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // Footstep on leaves
+    footstep_leaves: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // Thunder/lightning strike
+    thunder_strike: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA'
+  };
+
   // STEP 28: Zombie sound placeholder data (lower frequency for groans)
   private static readonly ZOMBIE_SOUNDS = {
     // Zombie groan variations
@@ -544,5 +570,172 @@ export class AudioManager {
     } catch (error) {
       console.error('Failed to initialize zombie sounds:', error);
     }
+  }
+
+  /**
+   * STEP 38: Initialize forest ambient sounds
+   */
+  public async initializeForestSounds(): Promise<void> {
+    try {
+      // Load forest ambience (looping background)
+      await this.loadSound('forest_ambience', {
+        src: [AudioManager.FOREST_SOUNDS.forest_ambience],
+        volume: 0.2,
+        loop: true,
+        preload: true
+      }, 'ambient');
+
+      // Load creepy forest sounds
+      await this.loadSound('forest_creepy', {
+        src: [AudioManager.FOREST_SOUNDS.forest_creepy],
+        volume: 0.15,
+        loop: true,
+        preload: true
+      }, 'ambient');
+
+      // Load footstep sounds
+      await this.loadSound('footstep_leaves', {
+        src: [AudioManager.FOREST_SOUNDS.footstep_leaves],
+        volume: 0.3,
+        pool: 5,
+        preload: true
+      }, 'ambient');
+
+      // Load thunder sound for lightning flashes
+      await this.loadSound('thunder_strike', {
+        src: [AudioManager.FOREST_SOUNDS.thunder_strike],
+        volume: 0.6,
+        pool: 2,
+        preload: true
+      }, 'ambient');
+
+      console.log('Forest sounds initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize forest sounds:', error);
+    }
+  }
+
+  /**
+   * Play forest ambience
+   */
+  public startForestAmbience(): void {
+    // Play main forest ambience
+    this.playSound('forest_ambience', 0.2);
+    
+    // Play creepy undertone
+    this.playSound('forest_creepy', 0.1);
+  }
+
+  /**
+   * Stop forest ambience
+   */
+  public stopForestAmbience(): void {
+    this.stopSound('forest_ambience');
+    this.stopSound('forest_creepy');
+  }
+
+  /**
+   * Play thunder sound for lightning effect
+   */
+  public playThunder(): void {
+    this.playSound('thunder_strike', 0.6);
+  }
+
+  /**
+   * STEP 39: Initialize industrial sounds
+   */
+  public async initializeIndustrialSounds(): Promise<void> {
+    try {
+      // Load industrial ambience (looping background)
+      await this.loadSound('industrial_ambience', {
+        src: [AudioManager.INDUSTRIAL_SOUNDS.industrial_ambience],
+        volume: 0.3,
+        loop: true,
+        preload: true
+      }, 'ambient');
+
+      // Load steam hiss
+      await this.loadSound('steam_hiss', {
+        src: [AudioManager.INDUSTRIAL_SOUNDS.steam_hiss],
+        volume: 0.4,
+        pool: 5,
+        preload: true
+      }, 'ambient');
+
+      // Load metal clank
+      await this.loadSound('metal_clank', {
+        src: [AudioManager.INDUSTRIAL_SOUNDS.metal_clank],
+        volume: 0.5,
+        pool: 3,
+        preload: true
+      }, 'ambient');
+
+      // Load alarm sound
+      await this.loadSound('alarm_sound', {
+        src: [AudioManager.INDUSTRIAL_SOUNDS.alarm_sound],
+        volume: 0.6,
+        preload: true
+      }, 'ambient');
+
+      // Load electrical buzz
+      await this.loadSound('electrical_buzz', {
+        src: [AudioManager.INDUSTRIAL_SOUNDS.electrical_buzz],
+        volume: 0.3,
+        loop: true,
+        preload: true
+      }, 'ambient');
+
+      console.log('Industrial sounds initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize industrial sounds:', error);
+    }
+  }
+
+  /**
+   * Play industrial ambience
+   */
+  public startIndustrialAmbience(): void {
+    // Play main industrial ambience
+    this.playSound('industrial_ambience', 0.3);
+    
+    // Play electrical buzz in background
+    this.playSound('electrical_buzz', 0.2);
+  }
+
+  /**
+   * Stop industrial ambience
+   */
+  public stopIndustrialAmbience(): void {
+    this.stopSound('industrial_ambience');
+    this.stopSound('electrical_buzz');
+  }
+
+  /**
+   * Play steam vent sound
+   */
+  public playSteamHiss(position?: Vector3): void {
+    if (position) {
+      this.playSound3D('steam_hiss', position, 0.4);
+    } else {
+      this.playSound('steam_hiss', 0.4);
+    }
+  }
+
+  /**
+   * Play metal clank sound
+   */
+  public playMetalClank(position?: Vector3): void {
+    if (position) {
+      this.playSound3D('metal_clank', position, 0.5);
+    } else {
+      this.playSound('metal_clank', 0.5);
+    }
+  }
+
+  /**
+   * Play alarm sound
+   */
+  public playAlarm(): void {
+    this.playSound('alarm_sound', 0.6);
   }
 }

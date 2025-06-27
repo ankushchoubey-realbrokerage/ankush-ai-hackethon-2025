@@ -2,7 +2,9 @@ import * as THREE from 'three';
 import { Vector3, ZombieType } from '../../types';
 import { Zombie } from './Zombie';
 import { FastZombie } from './FastZombie';
+import { CamoZombie } from './CamoZombie';
 import { AudioManager } from '../../core/audio/AudioManager';
+import { FogSystem } from '../../effects/FogSystem';
 
 export class ZombieManager {
   private zombies: Map<string, Zombie> = new Map();
@@ -10,6 +12,7 @@ export class ZombieManager {
   private physicsEngine: any = null;
   private audioManager: AudioManager | null = null; // STEP 28: Audio manager reference
   private particleSystem: any = null;
+  private fogSystem: FogSystem | null = null;
 
   public setScene(scene: THREE.Scene): void {
     this.scene = scene;
@@ -32,6 +35,10 @@ export class ZombieManager {
     this.audioManager = audioManager;
   }
 
+  public setFogSystem(fogSystem: FogSystem): void {
+    this.fogSystem = fogSystem;
+  }
+
   public spawnZombie(position: Vector3, zombieType: ZombieType | 'normal' | 'fast' = 'basic'): void {
     if (!this.scene) {
       console.error('[ZombieManager.spawnZombie] No scene set!');
@@ -42,14 +49,26 @@ export class ZombieManager {
     
     // Create zombie based on type
     let zombie: Zombie;
-    if (zombieType === 'fast') {
-      zombie = new FastZombie(position);
-    } else if (zombieType === 'normal') {
-      // Map 'normal' to 'basic' for compatibility
-      zombie = new Zombie(position, 'basic');
-    } else {
-      zombie = new Zombie(position, zombieType as ZombieType);
+    
+    switch (zombieType) {
+      case 'fast':
+        zombie = new FastZombie(position);
+        break;
+      case 'normal':
+        // Map 'normal' to 'basic' for compatibility
+        zombie = new Zombie(position, 'basic');
+        break;
+      case 'camouflaged':
+        zombie = new CamoZombie(position);
+        if (this.fogSystem && zombie instanceof CamoZombie) {
+          zombie.setFogSystem(this.fogSystem);
+        }
+        break;
+      default:
+        zombie = new Zombie(position, zombieType as ZombieType);
+        break;
     }
+    
     this.zombies.set(zombie.id, zombie);
     
     // STEP 28: Pass audio manager to zombie

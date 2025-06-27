@@ -1,4 +1,6 @@
 import { LevelData } from '../../types/level.types';
+import { forestLevelConfig } from './ForestMap';
+import { industrialLevelConfig } from './IndustrialMap';
 
 // STEP 31: Updated to use LevelData with win conditions
 export const levelConfigs: Map<number, LevelData> = new Map([
@@ -105,6 +107,8 @@ export const levelConfigs: Map<number, LevelData> = new Map([
     ],
     playerStartPosition: { x: 0, y: 0.5, z: -15 },
     winConditions: [{ type: 'kill_all' }]
-  }]
+  }],
+  [4, forestLevelConfig as LevelData],
+  [5, industrialLevelConfig as LevelData]
   // Additional levels will be added in later steps
 ]);
