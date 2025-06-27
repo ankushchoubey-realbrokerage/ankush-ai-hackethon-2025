@@ -72,6 +72,22 @@ export class PerformanceMonitor {
     return 'N/A';
   }
 
+  public setEnabled(enabled: boolean): void {
+    this.enabled = enabled && import.meta.env.DEV;
+    
+    if (this.enabled && !this.fpsElement) {
+      this.createDisplay();
+    } else if (!this.enabled && this.fpsElement) {
+      this.fpsElement.style.display = 'none';
+    } else if (this.enabled && this.fpsElement) {
+      this.fpsElement.style.display = 'block';
+    }
+  }
+
+  public toggle(): void {
+    this.setEnabled(!this.enabled);
+  }
+
   public destroy(): void {
     if (this.fpsElement && this.fpsElement.parentNode) {
       this.fpsElement.parentNode.removeChild(this.fpsElement);

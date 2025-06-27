@@ -1,0 +1,1 @@
+F1 is not working. all debug stuff are always on. I want them off by default.

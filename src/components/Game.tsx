@@ -29,9 +29,6 @@ export const Game: React.FC = () => {
 
   return (
     <div className="game-container" style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-      {/* Debug panel for testing state transitions */}
-      <StateDebugPanel />
-      
       {gameState === 'menu' && (
         <MainMenu onStartGame={handleStartGame} />
       )}

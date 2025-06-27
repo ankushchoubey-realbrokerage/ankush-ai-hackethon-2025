@@ -13,7 +13,7 @@ interface GameCanvasProps {
 export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
-  const [showDebug, setShowDebug] = useState(true);
+  const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -39,6 +39,19 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver }) 
       engineRef.current.setPaused(isPaused);
     }
   }, [isPaused]);
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'F1') {
+        e.preventDefault();
+        setShowDebug(prev => !prev);
+        engineRef.current?.toggleDebug();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
 
   const getActiveKeys = () => {
     return engineRef.current?.getInputManager()?.getActiveKeys() || [];

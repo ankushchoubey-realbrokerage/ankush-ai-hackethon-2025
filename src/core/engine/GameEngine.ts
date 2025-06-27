@@ -89,7 +89,7 @@ export class GameEngine {
     this.projectileManager = new ProjectileManager();
     
     // Initialize performance monitor (Chrome dev tools)
-    this.performanceMonitor = new PerformanceMonitor(true);
+    this.performanceMonitor = new PerformanceMonitor(false);
     
     // Initialize collision debugger
     this.collisionDebugger = new CollisionDebugger(this.scene);
@@ -176,10 +176,6 @@ export class GameEngine {
     const gameState = useGameStore.getState().gameState;
     if (gameState === 'playing') {
       const deltaTime = this.clock.getDelta();
-      // Debug: Log deltaTime periodically
-      if (Math.random() < 0.01) {
-        console.log('Game running - deltaTime:', deltaTime, 'gameState:', gameState);
-      }
       this.update(deltaTime);
     } else if (gameState === 'paused') {
       // Clock is paused, no updates
@@ -193,11 +189,6 @@ export class GameEngine {
   private update(deltaTime: number): void {
     // Update input
     const input = this.inputManager.getInput();
-    
-    // Debug: Log if we have movement input
-    if (input.movement.up || input.movement.down || input.movement.left || input.movement.right) {
-      console.log('Movement input detected:', input.movement);
-    }
     
     // Toggle collision debug with F2
     if (input.debugCollisions) {
@@ -299,6 +290,10 @@ export class GameEngine {
 
   public getPlayer(): Player {
     return this.player;
+  }
+
+  public toggleDebug(): void {
+    this.performanceMonitor.toggle();
   }
 
   private createTestObstacles(): void {
