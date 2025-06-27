@@ -74,3 +74,5 @@ In Player's fire method:
 - Modified Player fire logic for multi-projectile
 - Working shotgun with proper spread pattern
 - Demonstration of crowd control effectiveness
+
+Implement all tasks listed here. Don't just analyze. Don't do npm run test or npm lint or run dev.

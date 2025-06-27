@@ -47,7 +47,7 @@ Add to `levelConfigs.ts`:
 ## Merge Conflict Avoidance Tips
 1. **Create new map file** - Don't modify existing maps
 2. **Add to END of levelConfigs Map** to avoid conflicts
-3. **Use placeholder for fast zombies** - Just mark them in config, implementation comes in Step 33
+3. **Use placeholder for fast zombies** - Just mark them in config, implementation comaes in Step 33
 4. **Coordinate with Developer B** if they're adding volcano level to configs
 5. **Test with existing zombie types** first
 
@@ -62,3 +62,5 @@ Add to `levelConfigs.ts`:
 - Updated `levelConfigs.ts` with city level
 - Working city level with proper wave spawning
 - Car obstacles with correct collisions
+
+Implement all tasks listed here. Don't just analyze. Don't do npm run test or npm lint or run dev.

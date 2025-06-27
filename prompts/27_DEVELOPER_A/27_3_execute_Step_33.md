@@ -66,3 +66,5 @@ Use the fast zombie type in city level waves from Step 32.
 - Updated `ZombieManager` with type-based spawning
 - Visual distinction for fast zombies
 - Working demonstration of mixed zombie types
+
+Implement all tasks listed here. Don't just analyze. Don't do npm run test or npm lint or run dev.
