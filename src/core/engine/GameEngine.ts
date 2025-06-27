@@ -480,6 +480,38 @@ export class GameEngine {
           // Deal damage to zombie
           zombie.takeDamage(projectile.damage);
           
+          // STEP 29: Create blood splatter effect
+          if (this.particleSystem) {
+            const hitPosition = projectile.transform.position;
+            const direction = {
+              x: projectile.velocity.x,
+              y: projectile.velocity.y,
+              z: projectile.velocity.z
+            };
+            
+            // Normalize direction
+            const length = Math.sqrt(direction.x * direction.x + direction.y * direction.y + direction.z * direction.z);
+            if (length > 0) {
+              direction.x /= length;
+              direction.y /= length;
+              direction.z /= length;
+            }
+            
+            this.particleSystem.emit('blood', {
+              count: 20,
+              emitPosition: new THREE.Vector3(hitPosition.x, hitPosition.y + 0.5, hitPosition.z),
+              emitDirection: new THREE.Vector3(direction.x, direction.y + 0.5, direction.z),
+              spread: 0.5,
+              speed: 3,
+              speedVariation: 1,
+              color: new THREE.Color(0.5, 0, 0),
+              size: 0.1,
+              sizeVariation: 0.05,
+              lifetime: 1.5,
+              lifetimeVariation: 0.5
+            });
+          }
+          
           // Check if zombie died
           if (zombie.isDead) {
             console.log(`ZOMBIE KILLED! +10 points. Score before: ${useGameStore.getState().gameStats.score}`);
@@ -490,6 +522,28 @@ export class GameEngine {
             console.log(`Score after: ${store.gameStats.score}, Zombies killed: ${store.gameStats.zombiesKilled}`);
           }
           
+          // STEP 29: Create explosion effect using particle system
+          if (this.particleSystem) {
+            const pos = projectile.transform.position;
+            this.particleSystem.emit('custom', {
+              count: 30,
+              emitPosition: new THREE.Vector3(pos.x, pos.y, pos.z),
+              emitDirection: new THREE.Vector3(0, 1, 0),
+              spread: Math.PI,
+              speed: 4,
+              speedVariation: 2,
+              color: new THREE.Color(1, 0.5, 0),
+              colorVariation: 0.3,
+              size: 0.2,
+              sizeVariation: 0.1,
+              lifetime: 0.5,
+              lifetimeVariation: 0.2,
+              gravity: true,
+              fadeOut: true,
+              shrink: true
+            });
+          }
+          
           // Create hit effect at projectile position
           this.createExplosionEffect(projectile.transform.position);
           
@@ -498,80 +552,8 @@ export class GameEngine {
         }
       });
       
-      if (hitSomething) {
-        // Apply damage to hit entities
-        collisions.forEach(entity => {
-          // Skip the owner and other projectiles
-          if (entity.id === projectile.ownerId || entity.type === 'projectile') return;
-          
-          // If it's a zombie, apply damage and create blood effect
-          if (entity.type === 'zombie') {
-            const zombie = this.zombieManager.getZombie(entity.id);
-            if (zombie && !zombie.isDead) {
-              zombie.takeDamage(projectile.damage);
-              
-              // STEP 29: Create blood splatter effect
-              if (this.particleSystem) {
-                const hitPosition = projectile.transform.position;
-                const direction = {
-                  x: projectile.velocity.x,
-                  y: projectile.velocity.y,
-                  z: projectile.velocity.z
-                };
-                
-                // Normalize direction
-                const length = Math.sqrt(direction.x * direction.x + direction.y * direction.y + direction.z * direction.z);
-                if (length > 0) {
-                  direction.x /= length;
-                  direction.y /= length;
-                  direction.z /= length;
-                }
-                
-                this.particleSystem.emit('blood', {
-                  count: 20,
-                  emitPosition: new THREE.Vector3(hitPosition.x, hitPosition.y + 0.5, hitPosition.z),
-                  emitDirection: new THREE.Vector3(direction.x, direction.y + 0.5, direction.z),
-                  spread: 0.5,
-                  speed: 3,
-                  speedVariation: 1,
-                  color: new THREE.Color(0.5, 0, 0),
-                  size: 0.1,
-                  sizeVariation: 0.05,
-                  lifetime: 1.5,
-                  lifetimeVariation: 0.5
-                });
-              }
-            }
-          }
-        });
-        
-        // STEP 29: Create explosion effect using particle system
-        if (this.particleSystem) {
-          const pos = projectile.transform.position;
-          this.particleSystem.emit('custom', {
-            count: 30,
-            emitPosition: new THREE.Vector3(pos.x, pos.y, pos.z),
-            emitDirection: new THREE.Vector3(0, 1, 0),
-            spread: Math.PI,
-            speed: 4,
-            speedVariation: 2,
-            color: new THREE.Color(1, 0.5, 0),
-            colorVariation: 0.3,
-            size: 0.2,
-            sizeVariation: 0.1,
-            lifetime: 0.5,
-            lifetimeVariation: 0.2,
-            gravity: true,
-            fadeOut: true,
-            shrink: true
-          });
-        }
-        
-        // Also create the flash effect (keep existing visual)
-        this.createExplosionEffect(projectile.transform.position);
-      
-      // Also check collisions with obstacles (existing logic)
-      } else if (projectile.active) { // Only check if projectile hasn't hit a zombie
+      // Check collisions with physics engine for obstacles
+      if (projectile.active) { // Only check if projectile hasn't hit a zombie
         const collisions = this.physicsEngine.getCollisions(projectile);
         const hitObstacle = collisions.some(entity => {
           if (entity.id === projectile.ownerId) return false;
