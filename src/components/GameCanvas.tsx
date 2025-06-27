@@ -26,7 +26,6 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver }) 
     
     // Only create engine if it doesn't exist
     if (!engineRef.current) {
-      console.log('GameCanvas: Creating new GameEngine');
       // Initialize game engine
       engineRef.current = new GameEngine(mountRef.current, () => onGameOverRef.current());
       engineRef.current.start();
@@ -84,7 +83,6 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver }) 
   // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      console.log('GameCanvas: Component unmounting, destroying engine');
       engineRef.current?.destroy();
       engineRef.current = null;
     };

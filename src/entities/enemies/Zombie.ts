@@ -26,6 +26,8 @@ export class Zombie implements IZombie {
   lastAttackTime: number = 0;
   
   private mesh: THREE.Group;
+  private healthBarContainer: THREE.Group;
+  private healthBarFill: THREE.Mesh;
   
   constructor(position: Vector3) {
     this.id = `zombie-${Date.now()}-${Math.random()}`;
@@ -96,6 +98,41 @@ export class Zombie implements IZombie {
     
     this.mesh = group;
     this.mesh.position.set(position.x, position.y, position.z);
+    
+    // Create health bar
+    this.createHealthBar();
+  }
+  
+  private createHealthBar(): void {
+    // Create health bar container
+    this.healthBarContainer = new THREE.Group();
+    
+    // Background (dark red)
+    const bgGeometry = new THREE.PlaneGeometry(1.0, 0.15);
+    const bgMaterial = new THREE.MeshBasicMaterial({ 
+      color: 0x440000,
+      side: THREE.DoubleSide
+    });
+    const bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
+    this.healthBarContainer.add(bgMesh);
+    
+    // Health fill (bright red)
+    const fillGeometry = new THREE.PlaneGeometry(0.98, 0.13);
+    const fillMaterial = new THREE.MeshBasicMaterial({ 
+      color: 0xff0000,
+      side: THREE.DoubleSide
+    });
+    this.healthBarFill = new THREE.Mesh(fillGeometry, fillMaterial);
+    this.healthBarFill.position.z = 0.01; // Slightly in front of background
+    this.healthBarContainer.add(this.healthBarFill);
+    
+    // Position health bar above zombie head
+    this.healthBarContainer.position.set(0, 2.2, 0);
+    
+    // Set rotation for isometric view - tilted to be clearly visible
+    this.healthBarContainer.rotation.x = -Math.PI / 4; // 45 degree tilt
+    
+    this.mesh.add(this.healthBarContainer);
   }
   
   public update(deltaTime: number, playerPosition: Vector3): void {
@@ -145,15 +182,48 @@ export class Zombie implements IZombie {
       this.velocity.x = 0;
       this.velocity.z = 0;
     }
+    
+    // Keep health bar in fixed orientation for isometric view
+    // No rotation needed - it will always be visible from the isometric camera angle
+  }
+  
+  private updateHealthBar(): void {
+    // Update health bar fill width based on current health
+    const healthPercent = this.health / this.maxHealth;
+    this.healthBarFill.scale.x = Math.max(0, healthPercent);
+    
+    // Change color based on health
+    if (healthPercent > 0.6) {
+      (this.healthBarFill.material as THREE.MeshBasicMaterial).color.setHex(0x00ff00); // Green
+    } else if (healthPercent > 0.3) {
+      (this.healthBarFill.material as THREE.MeshBasicMaterial).color.setHex(0xffff00); // Yellow
+    } else {
+      (this.healthBarFill.material as THREE.MeshBasicMaterial).color.setHex(0xff0000); // Red
+    }
   }
   
   public takeDamage(damage: number): void {
+    const oldHealth = this.health;
     this.health -= damage;
+    console.log(`[Zombie.takeDamage] ${this.id}: ${oldHealth} - ${damage} = ${this.health}`);
+    
     if (this.health <= 0) {
       this.health = 0;
       this.isDead = true;
       this.active = false;
+      console.log(`[Zombie.takeDamage] ${this.id} DIED! isDead=${this.isDead}, active=${this.active}`);
+      // Hide health bar when dead
+      this.healthBarContainer.visible = false;
+    } else {
+      console.log(`[Zombie.takeDamage] ${this.id} survived with ${this.health} health`);
     }
+    
+    // Update health bar visual
+    this.updateHealthBar();
+  }
+  
+  public getHealth(): number {
+    return this.health;
   }
   
   public canAttack(): boolean {

@@ -39,6 +39,7 @@ export class ZombieManager {
       
       // Mark dead zombies for removal
       if (zombie.isDead) {
+        console.log(`[ZombieManager.update] Found dead zombie ${zombie.id}, marking for removal`);
         toRemove.push(zombie.id);
       }
     });
@@ -48,8 +49,15 @@ export class ZombieManager {
   }
 
   public removeZombie(zombieId: string): void {
+    console.log(`[ZombieManager.removeZombie] Removing zombie ${zombieId}`);
     const zombie = this.zombies.get(zombieId);
     if (zombie) {
+      console.log(`[ZombieManager.removeZombie] Zombie found, isDead=${zombie.isDead}`);
+      // STEP 18: Add death effect before removing
+      if (zombie.isDead && this.scene) {
+        this.createDeathEffect(zombie.getPosition());
+      }
+      
       if (this.scene) {
         this.scene.remove(zombie.getMesh());
       }
@@ -58,6 +66,57 @@ export class ZombieManager {
       }
     }
     this.zombies.delete(zombieId);
+  }
+  
+  private createDeathEffect(position: Vector3): void {
+    if (!this.scene) return;
+    
+    // Create a simple death effect (red particles)
+    const particleCount = 10;
+    for (let i = 0; i < particleCount; i++) {
+      const particleGeometry = new THREE.SphereGeometry(0.1, 4, 4);
+      const particleMaterial = new THREE.MeshBasicMaterial({
+        color: 0xff0000,
+        transparent: true,
+        opacity: 1
+      });
+      const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+      
+      // Random position around death location
+      particle.position.set(
+        position.x + (Math.random() - 0.5) * 0.5,
+        position.y + Math.random() * 0.5,
+        position.z + (Math.random() - 0.5) * 0.5
+      );
+      
+      this.scene.add(particle);
+      
+      // Animate particle
+      const startTime = Date.now();
+      const velocityY = Math.random() * 2 + 1;
+      const velocityX = (Math.random() - 0.5) * 2;
+      const velocityZ = (Math.random() - 0.5) * 2;
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = elapsed / 1000; // 1 second duration
+        
+        if (progress < 1) {
+          particle.position.x += velocityX * 0.016;
+          particle.position.y += (velocityY - 5 * progress) * 0.016; // Gravity
+          particle.position.z += velocityZ * 0.016;
+          
+          particleMaterial.opacity = 1 - progress;
+          particle.scale.setScalar(1 - progress * 0.5);
+          
+          requestAnimationFrame(animate);
+        } else {
+          this.scene?.remove(particle);
+        }
+      };
+      
+      animate();
+    }
   }
 
   public getZombies(): Zombie[] {

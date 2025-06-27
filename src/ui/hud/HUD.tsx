@@ -6,11 +6,6 @@ export const HUD: React.FC = () => {
   const { gameStats, playerHealth, playerMaxHealth } = useGameStore();
   const currentWeapon = useCurrentWeapon();
   
-  // Debug logging
-  React.useEffect(() => {
-    console.log(`HUD render - Health: ${playerHealth}/${playerMaxHealth}`);
-  }, [playerHealth, playerMaxHealth]);
-  
   const weaponName = currentWeapon?.name || 'None';
   const ammo = currentWeapon?.ammo || 0;
   const isUnlimited = currentWeapon?.isUnlimited || false;

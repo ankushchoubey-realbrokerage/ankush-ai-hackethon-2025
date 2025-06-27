@@ -120,8 +120,6 @@ export class GameEngine {
     // Register player with physics engine
     this.physicsEngine.addEntity(this.player);
     
-    // STEP 17: Log initial health values for debugging
-    console.log(`Game initialized - Player health: ${this.player.getHealth()}/${this.player.getMaxHealth()}`);
     
     // Add test obstacles for collision testing
     this.createTestObstacles();
@@ -261,7 +259,6 @@ export class GameEngine {
     const currentHealth = this.player.getHealth();
     const maxHealth = this.player.getMaxHealth();
     if (store.playerHealth !== currentHealth || store.playerMaxHealth !== maxHealth) {
-      console.log(`Health update: Player=${currentHealth}, Store=${store.playerHealth} -> updating store`);
       store.setPlayerHealth(currentHealth, maxHealth);
     }
     
@@ -385,34 +382,78 @@ export class GameEngine {
   }
   
   private checkProjectileCollisions(): void {
+    // STEP 18: Projectile-Zombie Collision
     const projectiles = this.projectileManager.getProjectiles();
+    const zombies = this.zombieManager.getZombies();
+    
     
     projectiles.forEach(projectile => {
       // Skip collision check if projectile is too young (to avoid self-collision)
       if (!projectile.canCollide()) return;
       
-      // Get all collisions for this projectile
-      const collisions = this.physicsEngine.getCollisions(projectile);
+      // Skip if projectile is already inactive
+      if (!projectile.active) return;
       
-      // Check if projectile hit anything (except its owner and other projectiles)
-      const hitSomething = collisions.some(entity => {
-        // Skip the owner (player who shot it)
-        if (entity.id === projectile.ownerId) return false;
-        // Skip other projectiles
-        if (entity.type === 'projectile') return false;
-        // Hit something valid
-        return true;
+      // Check collision with each zombie
+      zombies.forEach(zombie => {
+        if (!zombie.active || zombie.isDead) return;
+        
+        // Simple AABB collision check between projectile and zombie
+        const projPos = projectile.transform.position;
+        const zombiePos = zombie.transform.position;
+        const zombieBox = zombie.boundingBox;
+        
+        // Calculate zombie's world space bounding box
+        const zombieMinX = zombiePos.x + zombieBox.min.x;
+        const zombieMaxX = zombiePos.x + zombieBox.max.x;
+        const zombieMinY = zombiePos.y + zombieBox.min.y;
+        const zombieMaxY = zombiePos.y + zombieBox.max.y;
+        const zombieMinZ = zombiePos.z + zombieBox.min.z;
+        const zombieMaxZ = zombiePos.z + zombieBox.max.z;
+        
+        
+        // Check if projectile point is inside zombie bounding box
+        if (projPos.x >= zombieMinX && projPos.x <= zombieMaxX &&
+            projPos.y >= zombieMinY && projPos.y <= zombieMaxY &&
+            projPos.z >= zombieMinZ && projPos.z <= zombieMaxZ) {
+          
+          console.log(`HIT! Zombie hit by projectile with damage=${projectile.damage}. Health: ${zombie.health} -> ${zombie.health - projectile.damage}`);
+          
+          // Deal damage to zombie
+          zombie.takeDamage(projectile.damage);
+          
+          // Check if zombie died
+          if (zombie.isDead) {
+            console.log(`ZOMBIE KILLED! +10 points. Score before: ${useGameStore.getState().gameStats.score}`);
+            // Update score
+            const store = useGameStore.getState();
+            store.addScore(10); // 10 points per zombie
+            store.incrementZombiesKilled();
+            console.log(`Score after: ${store.gameStats.score}, Zombies killed: ${store.gameStats.zombiesKilled}`);
+          }
+          
+          // Create hit effect at projectile position
+          this.createExplosionEffect(projectile.transform.position);
+          
+          // Mark projectile for removal
+          projectile.active = false;
+        }
       });
       
-      if (hitSomething) {
-        // Create explosion effect at projectile position
-        this.createExplosionEffect(projectile.transform.position);
+      // Also check collisions with obstacles (existing logic)
+      if (projectile.active) { // Only check if projectile hasn't hit a zombie
+        const collisions = this.physicsEngine.getCollisions(projectile);
+        const hitObstacle = collisions.some(entity => {
+          if (entity.id === projectile.ownerId) return false;
+          if (entity.type === 'projectile') return false;
+          if (entity.type === 'zombie') return false; // Already handled above
+          return true;
+        });
         
-        // TODO: Play explosion sound effect when audio system is ready
-        // this.audioManager.playSound('explosion');
-        
-        // Mark projectile for removal
-        projectile.active = false;
+        if (hitObstacle) {
+          this.createExplosionEffect(projectile.transform.position);
+          projectile.active = false;
+        }
       }
     });
   }
@@ -515,12 +556,8 @@ export class GameEngine {
         // Check if zombie can attack (respects cooldown)
         if (zombie.canAttack()) {
           // Deal damage to player
-          console.log(`Before damage - Player health: ${this.player.getHealth()}`);
           this.player.takeDamage(zombie.damage);
           zombie.attack(); // Update zombie's last attack time
-          
-          // Visual feedback and debugging
-          console.log(`Zombie ${zombie.id} attacked player for ${zombie.damage} damage! Player health now: ${this.player.getHealth()}`);
         }
       }
     });

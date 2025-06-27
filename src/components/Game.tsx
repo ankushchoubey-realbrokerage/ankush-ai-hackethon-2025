@@ -21,7 +21,6 @@ export const Game: React.FC = () => {
 
   const handleGameOver = useCallback(() => {
     // GameEngine handles this internally
-    console.log('Game: handleGameOver called');
   }, []);
 
   const handleBackToMenu = () => {

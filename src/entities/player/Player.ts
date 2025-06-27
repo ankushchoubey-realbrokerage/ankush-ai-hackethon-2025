@@ -54,7 +54,6 @@ export class Player implements IPlayer {
   private container: HTMLElement | null = null;
 
   constructor() {
-    console.log(`Creating new Player instance: ${this.instanceId}`);
     // Create player mesh group
     const group = new THREE.Group();
     
@@ -280,17 +279,13 @@ export class Player implements IPlayer {
     // STEP 17: Check invulnerability
     const currentTime = Date.now();
     if (currentTime - this.lastDamageTime < this.invulnerabilityDuration) {
-      console.log('Player is invulnerable, damage blocked');
       return; // Still invulnerable, don't take damage
     }
 
     // Apply damage
-    const oldHealth = this.health;
     this.health -= damage;
     this.lastDamageTime = currentTime;
     this.isInvulnerable = true;
-    
-    console.log(`Player ${this.instanceId} took ${damage} damage. Health: ${oldHealth} -> ${this.health}`);
     
     if (this.health <= 0) {
       this.health = 0;
@@ -300,7 +295,6 @@ export class Player implements IPlayer {
     // Reset invulnerability flag after duration
     setTimeout(() => {
       this.isInvulnerable = false;
-      console.log('Player invulnerability ended');
     }, this.invulnerabilityDuration);
   }
 
@@ -425,7 +419,6 @@ export class Player implements IPlayer {
   }
   
   public getHealth(): number {
-    console.log(`Player ${this.instanceId} getHealth() called: ${this.health}`);
     return this.health;
   }
   
