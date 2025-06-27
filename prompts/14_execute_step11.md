@@ -1,5 +1,5 @@
-Step 10: Game State Management
-- Set up Zustand store for game state
-- Implement game states (menu, playing, paused, game over)
-- Create state transition logic
-- Test state changes
+Step 11: Basic UI - HUD
+- Create React components for HUD
+- Display player health
+- Display current weapon
+- Display score/zombie count
