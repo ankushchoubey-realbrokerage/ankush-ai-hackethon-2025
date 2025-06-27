@@ -1,5 +1,6 @@
 import { Level } from '../../types';
 import { forestLevelConfig } from './ForestMap';
+import { industrialLevelConfig } from './IndustrialMap';
 
 export const levelConfigs: Map<number, Level> = new Map([
   [1, {
@@ -35,6 +36,7 @@ export const levelConfigs: Map<number, Level> = new Map([
     ],
     playerStartPosition: { x: 0, y: 0.5, z: 0 }
   }],
-  [4, forestLevelConfig]
+  [4, forestLevelConfig],
+  [5, industrialLevelConfig]
   // Additional levels will be added in later steps
 ]);

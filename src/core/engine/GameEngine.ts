@@ -55,13 +55,14 @@ export class GameEngine {
       antialias: true,
       powerPreference: "high-performance",
       stencil: false,
-      depth: true
+      depth: true,
+      logarithmicDepthBuffer: true // Helps prevent z-fighting
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap at 2 for performance
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.shadowMap.autoUpdate = false; // Manual shadow updates for performance
+    this.renderer.shadowMap.autoUpdate = true; // Auto update to prevent flickering
     
     // Chrome-specific optimizations
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -152,12 +153,12 @@ export class GameEngine {
     this.createTestObstacles();
     
     // STEP 16: Spawn test zombies for movement testing
-    // For forest level, spawn some camouflaged zombies
-    this.zombieManager.spawnZombie({ x: 10, y: 0, z: 10 }, 'camouflaged');
-    this.zombieManager.spawnZombie({ x: -10, y: 0, z: 10 }, 'camouflaged');
+    // For industrial level, spawn armored zombies
+    this.zombieManager.spawnZombie({ x: 10, y: 0, z: 10 }, 'armored');
+    this.zombieManager.spawnZombie({ x: -10, y: 0, z: 10 }, 'armored');
     this.zombieManager.spawnZombie({ x: 10, y: 0, z: -10 }, 'basic');
     this.zombieManager.spawnZombie({ x: -10, y: 0, z: -10 }, 'basic');
-    this.zombieManager.spawnZombie({ x: 0, y: 0, z: 15 }, 'camouflaged');
+    this.zombieManager.spawnZombie({ x: 0, y: 0, z: 15 }, 'armored');
     
     // Add reference markers for testing (smaller, less intrusive)
     const markerGeometry = new THREE.SphereGeometry(0.3, 16, 16);
@@ -184,8 +185,8 @@ export class GameEngine {
       this.scene.add(marker);
     });
     
-    // Load first level (changed to forest for testing)
-    this.levelManager.loadLevel(4); // Forest level for testing
+    // Load first level (changed to industrial for testing)
+    this.levelManager.loadLevel(5); // Industrial level for testing
     this.configureLevelEnvironment();
   }
   
@@ -207,6 +208,15 @@ export class GameEngine {
         this.audioManager.startForestAmbience();
         // Load forest map assets
         this.loadForestMap();
+        break;
+      case 'industrial':
+        // Light fog for industrial level
+        this.fogSystem.enable(0.01, '#666666');
+        this.scene.fog = new THREE.FogExp2(0x666666, 0.01);
+        // Start industrial ambience
+        this.audioManager.startIndustrialAmbience();
+        // Load industrial map assets
+        this.loadIndustrialMap();
         break;
       case 'simple-map':
       case 'city-streets':
@@ -244,6 +254,41 @@ export class GameEngine {
           boundingBox: {
             min: { x: -1, y: 0, z: -1 },
             max: { x: 1, y: 3, z: 1 }
+          },
+          active: true
+        };
+        this.physicsEngine.addEntity(obstacleEntity);
+      });
+    });
+  }
+  
+  private loadIndustrialMap(): void {
+    // Import and load the industrial map
+    import('../../levels/maps/IndustrialMap').then(({ IndustrialMap }) => {
+      const industrialMap = new IndustrialMap(this.scene);
+      industrialMap.load(this.particleSystem);
+      
+      // Store reference for updates
+      (this as any).industrialMap = industrialMap;
+      
+      // Register obstacles with physics engine
+      const obstacles = industrialMap.getObstacles();
+      obstacles.forEach(obstacle => {
+        const obstacleEntity = {
+          id: `industrial-obstacle-${Math.random()}`,
+          type: 'obstacle' as const,
+          transform: {
+            position: {
+              x: obstacle.position.x,
+              y: obstacle.position.y,
+              z: obstacle.position.z
+            },
+            rotation: { x: 0, y: 0, z: 0 },
+            scale: { x: 1, y: 1, z: 1 }
+          },
+          boundingBox: {
+            min: { x: -2, y: 0, z: -2 },
+            max: { x: 2, y: 4, z: 2 }
           },
           active: true
         };
@@ -343,6 +388,29 @@ export class GameEngine {
     const ambientLight = this.scene.children.find(child => child instanceof THREE.AmbientLight) as THREE.AmbientLight;
     this.fogSystem.update(deltaTime, ambientLight);
     
+    // STEP 39: Update industrial map mechanics if loaded
+    if ((this as any).industrialMap) {
+      const industrialMap = (this as any).industrialMap;
+      industrialMap.update(deltaTime);
+      
+      // Apply conveyor belt movement to entities
+      const allEntities = [this.player, ...this.zombieManager.getZombies()];
+      industrialMap.getConveyorBelts().forEach((belt: any) => {
+        allEntities.forEach(entity => {
+          belt.applyMovement(entity, deltaTime);
+        });
+      });
+      
+      // Check hazard collisions
+      industrialMap.getHazards().forEach((hazard: any) => {
+        allEntities.forEach(entity => {
+          if (hazard.checkCollision(entity)) {
+            hazard.applyEffect(entity);
+          }
+        });
+      });
+    }
+    
     // Update collision debug visualization
     if (this.collisionDebugger.isEnabled()) {
       // Update player debug box
@@ -381,11 +449,6 @@ export class GameEngine {
   }
 
   private render(): void {
-    // Update shadows periodically for performance
-    if (this.clock.getElapsedTime() % 0.1 < 0.016) { // Update every ~100ms
-      this.renderer.shadowMap.needsUpdate = true;
-    }
-    
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -417,6 +480,9 @@ export class GameEngine {
       
       // STEP 38: Initialize forest sounds
       await this.audioManager.initializeForestSounds();
+      
+      // STEP 39: Initialize industrial sounds
+      await this.audioManager.initializeIndustrialSounds();
       
     } catch (error) {
       console.error('Failed to initialize audio:', error);

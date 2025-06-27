@@ -1,0 +1,1 @@
+When I move there is a lot of flickering and black lines

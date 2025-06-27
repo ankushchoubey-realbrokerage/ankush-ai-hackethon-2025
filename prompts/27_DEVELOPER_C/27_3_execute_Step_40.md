@@ -114,3 +114,5 @@ if (boss.health <= 0) {
 - `BossManager.ts` for battle orchestration
 - Working boss fight in industrial level
 - Polished battle experience with all phases
+
+Implement all tasks listed here. Don't just analyze. Don't do npm run test or npm lint or run dev.

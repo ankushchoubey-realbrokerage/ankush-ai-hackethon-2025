@@ -50,8 +50,11 @@ export class SceneManager {
     directionalLight.shadow.camera.bottom = -50;
     directionalLight.shadow.mapSize.width = 2048;
     directionalLight.shadow.mapSize.height = 2048;
-    directionalLight.shadow.camera.near = 0.5;
-    directionalLight.shadow.camera.far = 500;
+    directionalLight.shadow.camera.near = 1;
+    directionalLight.shadow.camera.far = 100;
+    // Add shadow bias to prevent acne
+    directionalLight.shadow.bias = -0.0005;
+    directionalLight.shadow.normalBias = 0.02;
     this.scene.add(directionalLight);
     
     // Add hemisphere light for better ambient lighting
@@ -144,6 +147,7 @@ export class SceneManager {
     
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.01; // Slightly lower to prevent z-fighting
     ground.receiveShadow = true;
     this.scene.add(ground);
   }
@@ -188,7 +192,9 @@ export class SceneManager {
       roughness: 0.9,
       metalness: 0.1,
       transparent: true,
-      opacity: 0.5
+      opacity: 0.5,
+      depthWrite: false, // Prevent depth buffer conflicts
+      side: THREE.DoubleSide // Render both sides
     });
 
     const wallHeight = 5;
