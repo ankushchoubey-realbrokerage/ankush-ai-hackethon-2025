@@ -59,7 +59,7 @@ export interface WinCondition {
 
 export interface LevelObstacle {
   id: string;
-  type: 'wall' | 'car' | 'rock' | 'building' | 'tree';
+  type: 'wall' | 'car' | 'rock' | 'building' | 'tree' | 'debris';
   position: Vector3;
   rotation: Vector3;
   scale: Vector3;

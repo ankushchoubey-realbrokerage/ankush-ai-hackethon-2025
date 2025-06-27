@@ -191,6 +191,15 @@ export class LevelLoader {
         treeGroup.scale.set(obstacle.scale.x, obstacle.scale.y, obstacle.scale.z);
         
         return treeGroup;
+      case 'debris':
+        // Street debris - irregular shape
+        geometry = new THREE.TetrahedronGeometry(0.8, 2);
+        material = new THREE.MeshStandardMaterial({ 
+          color: 0x444444, 
+          roughness: 0.95,
+          metalness: 0.1 
+        });
+        break;
       default:
         // Default box obstacle
         geometry = new THREE.BoxGeometry(1, 1, 1);
