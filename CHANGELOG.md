@@ -1,5 +1,49 @@
 # Changelog
 
+## Step 14: Projectile System - Completed ✅
+
+### Features Added
+1. **Projectile Movement**
+   - Smooth velocity-based movement
+   - Delta time integration for frame-rate independence
+   - Automatic mesh position updates
+   - Rotation alignment with movement direction
+
+2. **Projectile Lifetime**
+   - 3-second maximum lifetime per projectile
+   - Automatic deactivation when lifetime expires
+   - Efficient lifetime tracking in update loop
+   - No memory leaks from expired projectiles
+
+3. **Out of Bounds Removal**
+   - 50-unit radius boundary check
+   - Automatic cleanup when projectiles leave play area
+   - Physics engine deregistration on removal
+   - Scene mesh removal for performance
+
+4. **Multiple Projectile Support**
+   - Efficient Map-based storage
+   - 100 projectile limit for performance
+   - Automatic oldest projectile removal when limit reached
+   - Increased fire rate to 4 shots/second for testing
+   - Smooth handling of many simultaneous projectiles
+
+### Technical Enhancements
+- Improved material with metalness and roughness
+- Performance optimizations for many projectiles
+- Proper cleanup in removal process
+- Physics engine integration maintained
+- No frame drops with multiple projectiles
+
+### System Robustness
+- Handles rapid fire without issues
+- Memory efficient projectile management
+- Proper entity lifecycle management
+- Scene and physics cleanup on removal
+- Ready for combat system integration
+
+---
+
 ## Step 13: Shooting Mechanism - Completed ✅
 
 ### Features Added

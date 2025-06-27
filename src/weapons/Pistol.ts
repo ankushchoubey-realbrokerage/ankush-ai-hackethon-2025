@@ -7,7 +7,7 @@ export class Pistol extends BaseWeapon {
       name: 'Pistol',
       type: 'pistol',
       damage: 25,
-      fireRate: 2, // 2 shots per second
+      fireRate: 4, // 4 shots per second for better testing
       ammo: -1,
       maxAmmo: -1,
       isUnlimited: true,

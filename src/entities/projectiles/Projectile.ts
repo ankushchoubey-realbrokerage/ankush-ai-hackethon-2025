@@ -48,10 +48,12 @@ export class Projectile implements Entity {
     
     // Create mesh
     const geometry = new THREE.SphereGeometry(0.1, 8, 8);
-    const material = new THREE.MeshBasicMaterial({
+    const material = new THREE.MeshStandardMaterial({
       color: 0xffff00,
       emissive: 0xffff00,
-      emissiveIntensity: 0.5
+      emissiveIntensity: 0.8,
+      metalness: 0.3,
+      roughness: 0.4
     });
     this.mesh = new THREE.Mesh(geometry, material);
     this.mesh.position.set(position.x, position.y, position.z);

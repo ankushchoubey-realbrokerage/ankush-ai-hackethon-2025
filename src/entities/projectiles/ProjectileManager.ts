@@ -6,6 +6,7 @@ export class ProjectileManager {
   private projectiles: Map<string, Projectile> = new Map();
   private scene: THREE.Scene | null = null;
   private physicsEngine: any = null;
+  private maxProjectiles: number = 100; // Limit for performance
 
   public setScene(scene: THREE.Scene): void {
     this.scene = scene;
@@ -23,6 +24,15 @@ export class ProjectileManager {
     ownerId: string
   ): void {
     if (!this.scene) return;
+    
+    // Limit projectiles for performance
+    if (this.projectiles.size >= this.maxProjectiles) {
+      // Remove oldest projectile
+      const oldestId = this.projectiles.keys().next().value;
+      if (oldestId) {
+        this.removeProjectile(oldestId);
+      }
+    }
     
     const projectile = new Projectile(
       position,
@@ -86,5 +96,9 @@ export class ProjectileManager {
     this.projectiles.forEach((projectile) => {
       this.removeProjectile(projectile.id);
     });
+  }
+  
+  public getProjectileCount(): number {
+    return this.projectiles.size;
   }
 }
