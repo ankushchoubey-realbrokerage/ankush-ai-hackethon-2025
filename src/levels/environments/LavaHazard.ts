@@ -48,7 +48,7 @@ export class LavaHazard {
     );
   }
 
-  applyDamage(entity: DamagableEntity, deltaTime: number): void {
+  applyDamage(entity: DamagableEntity, _deltaTime: number): void {
     if (!this.checkCollision(entity)) {
       // Entity left the lava, remove from tracking
       this.affectedEntities.delete(entity.id);

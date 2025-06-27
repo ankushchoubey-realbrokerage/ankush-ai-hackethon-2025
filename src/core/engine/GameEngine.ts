@@ -110,6 +110,9 @@ export class GameEngine {
     this.environmentalHazardManager = new EnvironmentalHazardManager();
     
     this.init();
+    
+    // STEP 36: Initialize extended hazard system after scene is ready
+    this.environmentalHazardManager.initializeExtended(this.scene, this.camera, this.renderer);
   }
 
   private init(): void {
@@ -338,6 +341,85 @@ export class GameEngine {
     if (level && map && level.environmentalHazards) {
       this.environmentalHazardManager.initialize(levelNumber, map.getLavaHazards());
     }
+    
+    // STEP 36: Create demo hazards for testing
+    if (levelNumber === 99) { // Demo level
+      this.createDemoHazards();
+    }
+  }
+  
+  // STEP 36: Create demo hazards showcasing all types
+  private createDemoHazards(): void {
+    // Damage zone (acid pool)
+    this.environmentalHazardManager.createHazard({
+      id: 'demo_acid_1',
+      type: 'damage',
+      position: { x: -10, y: 0, z: 0 },
+      dimensions: { x: 4, y: 0.5, z: 4 },
+      properties: {
+        damage: 15,
+        damageType: 'acid'
+      }
+    });
+    
+    // Instant death pit
+    this.environmentalHazardManager.createHazard({
+      id: 'demo_pit_1',
+      type: 'instant_death',
+      position: { x: 10, y: -1, z: 0 },
+      dimensions: { x: 3, y: 2, z: 3 },
+      properties: {
+        deathType: 'pit'
+      }
+    });
+    
+    // Slowing zone (mud)
+    this.environmentalHazardManager.createHazard({
+      id: 'demo_mud_1',
+      type: 'slow',
+      position: { x: 0, y: 0, z: -10 },
+      dimensions: { x: 6, y: 0.3, z: 6 },
+      properties: {
+        slowFactor: 0.3,
+        slowType: 'mud'
+      }
+    });
+    
+    // Push zone (wind)
+    this.environmentalHazardManager.createHazard({
+      id: 'demo_wind_1',
+      type: 'push',
+      position: { x: 0, y: 0, z: 10 },
+      dimensions: { x: 8, y: 4, z: 2 },
+      properties: {
+        pushForce: { x: 5, y: 0, z: 0 },
+        pushType: 'wind'
+      }
+    });
+    
+    // Geyser (upward push)
+    this.environmentalHazardManager.createHazard({
+      id: 'demo_geyser_1',
+      type: 'push',
+      position: { x: -5, y: 0, z: -5 },
+      dimensions: { x: 2, y: 0.5, z: 2 },
+      properties: {
+        pushForce: { x: 0, y: 20, z: 0 },
+        pushType: 'geyser'
+      }
+    });
+    
+    // Ice slowing zone
+    this.environmentalHazardManager.createHazard({
+      id: 'demo_ice_1',
+      type: 'slow',
+      position: { x: 5, y: 0, z: 5 },
+      dimensions: { x: 5, y: 0.1, z: 5 },
+      properties: {
+        slowFactor: 0.7,
+        slowType: 'ice'
+      }
+    });
   }
 
   private async initializeAudio(): Promise<void> {
