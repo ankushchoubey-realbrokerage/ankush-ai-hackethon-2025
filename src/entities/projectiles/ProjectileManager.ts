@@ -6,6 +6,7 @@ export class ProjectileManager {
   private projectiles: Map<string, Projectile> = new Map();
   private scene: THREE.Scene | null = null;
   private physicsEngine: any = null;
+  private particleSystem: any = null;
   private maxProjectiles: number = 100; // Limit for performance
 
   public setScene(scene: THREE.Scene): void {
@@ -14,6 +15,10 @@ export class ProjectileManager {
   
   public setPhysicsEngine(physicsEngine: any): void {
     this.physicsEngine = physicsEngine;
+  }
+  
+  public setParticleSystem(particleSystem: any): void {
+    this.particleSystem = particleSystem;
   }
 
   public createProjectile(

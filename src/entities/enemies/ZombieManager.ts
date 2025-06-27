@@ -6,6 +6,7 @@ export class ZombieManager {
   private zombies: Map<string, Zombie> = new Map();
   private scene: THREE.Scene | null = null;
   private physicsEngine: any = null;
+  private particleSystem: any = null;
 
   public setScene(scene: THREE.Scene): void {
     this.scene = scene;
@@ -13,6 +14,14 @@ export class ZombieManager {
   
   public setPhysicsEngine(physicsEngine: any): void {
     this.physicsEngine = physicsEngine;
+  }
+  
+  public setParticleSystem(particleSystem: any): void {
+    this.particleSystem = particleSystem;
+  }
+  
+  public getZombie(id: string): Zombie | undefined {
+    return this.zombies.get(id);
   }
 
   public spawnZombie(position: Vector3): void {

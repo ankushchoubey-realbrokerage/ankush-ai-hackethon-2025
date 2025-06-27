@@ -6,6 +6,7 @@ import { Pistol } from '../../weapons';
 
 export class Player implements IPlayer {
   private projectileManager: any = null; // Will be set by GameEngine
+  private particleSystem: any = null; // Will be set by GameEngine
   id: string = 'player';
   type: 'player' = 'player';
   transform = {
@@ -256,6 +257,23 @@ export class Player implements IPlayer {
           currentWeapon.projectileSpeed,
           this.id
         );
+        
+        // STEP 29: Create muzzle flash effect
+        if (this.particleSystem) {
+          this.particleSystem.emit('muzzleFlash', {
+            count: 10,
+            emitPosition: new THREE.Vector3(spawnPosition.x, spawnPosition.y, spawnPosition.z),
+            emitDirection: new THREE.Vector3(finalDirection.x, finalDirection.y, finalDirection.z),
+            spread: 0.1,
+            speed: 5,
+            speedVariation: 2,
+            color: new THREE.Color(1, 1, 0.5),
+            size: 0.3,
+            sizeVariation: 0.1,
+            lifetime: 0.1,
+            lifetimeVariation: 0.05
+          });
+        }
       }
     }
   }
@@ -396,5 +414,9 @@ export class Player implements IPlayer {
   
   public setProjectileManager(projectileManager: any): void {
     this.projectileManager = projectileManager;
+  }
+  
+  public setParticleSystem(particleSystem: any): void {
+    this.particleSystem = particleSystem;
   }
 }
