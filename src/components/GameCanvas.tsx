@@ -8,9 +8,10 @@ import { DebugInfo } from '../ui/hud/DebugInfo';
 interface GameCanvasProps {
   isPaused: boolean;
   onGameOver: () => void;
+  levelId?: number;
 }
 
-export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver }) => {
+export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver, levelId = 1 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
   const onGameOverRef = useRef(onGameOver);
@@ -29,6 +30,13 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver }) 
       // Initialize game engine
       engineRef.current = new GameEngine(mountRef.current, () => onGameOverRef.current());
       engineRef.current.start();
+      
+      // Load the selected level
+      if (levelId && engineRef.current) {
+        setTimeout(() => {
+          engineRef.current?.loadLevel(levelId);
+        }, 100);
+      }
     }
 
     // Handle window resize

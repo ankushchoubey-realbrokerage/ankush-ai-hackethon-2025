@@ -237,15 +237,7 @@ export class GameEngine {
       this.scene.add(marker);
     });
     
-    // Load first level and start first wave
-    this.levelManager.loadLevel(1);
-    this.configureLevelEnvironment();
-    
-    // Start first wave after a short delay
-    setTimeout(() => {
-      console.log('Starting first wave of level 1...');
-      this.levelManager.startNextWave();
-    }, 2000); // 2 second delay before first wave
+    // Don't load level here - will be loaded by GameCanvas
   }
   
   private configureLevelEnvironment(): void {
@@ -1145,6 +1137,9 @@ export class GameEngine {
       
       // Update level manager
       this.levelManager.setCurrentLevel(levelId);
+      
+      // Configure level environment (fog, audio, etc.)
+      this.configureLevelEnvironment();
       
       // Initialize hazards for the level
       const level = this.levelManager.getCurrentLevel();

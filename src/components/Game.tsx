@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useGameStore, useGameState } from '../store/gameStore';
 import { MainMenu } from '../ui/menu/MainMenu';
 import { GameCanvas } from './GameCanvas';
@@ -10,8 +10,12 @@ import { GameOverScreen } from '../ui/menu/GameOverScreen';
 export const Game: React.FC = () => {
   const gameState = useGameState();
   const { startGame, resumeGame, returnToMenu } = useGameStore();
+  const [selectedLevelId, setSelectedLevelId] = useState<number>(1);
 
-  const handleStartGame = () => {
+  const handleStartGame = (levelId?: number) => {
+    if (levelId !== undefined) {
+      setSelectedLevelId(levelId);
+    }
     startGame();
   };
 
@@ -28,17 +32,18 @@ export const Game: React.FC = () => {
   };
 
   return (
-    <div className="game-container" style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-      {gameState === 'menu' && (
-        <MainMenu onStartGame={handleStartGame} />
-      )}
+    <div className="gameContainer">
+      {/* Uncomment to debug state */}
+      {/* <StateDebugPanel /> */}
+      
+      {gameState === 'menu' && <MainMenu onStartGame={handleStartGame} />}
       
       {(gameState === 'playing' || gameState === 'paused') && (
         <>
           <GameCanvas 
-            key="game-canvas" // Add stable key
             isPaused={gameState === 'paused'} 
             onGameOver={handleGameOver}
+            levelId={selectedLevelId}
           />
           <HUD />
           {gameState === 'paused' && (
@@ -52,7 +57,7 @@ export const Game: React.FC = () => {
       
       {gameState === 'gameOver' && (
         <GameOverScreen 
-          onRestart={handleStartGame}
+          onRestart={() => handleStartGame(selectedLevelId)}
           onMainMenu={handleBackToMenu}
         />
       )}
