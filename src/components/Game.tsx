@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useGameStore, useGameState } from '../store/gameStore';
 import { MainMenu } from '../ui/menu/MainMenu';
 import { GameCanvas } from './GameCanvas';
@@ -19,9 +19,10 @@ export const Game: React.FC = () => {
     resumeGame();
   };
 
-  const handleGameOver = () => {
+  const handleGameOver = useCallback(() => {
     // GameEngine handles this internally
-  };
+    console.log('Game: handleGameOver called');
+  }, []);
 
   const handleBackToMenu = () => {
     returnToMenu();
@@ -36,6 +37,7 @@ export const Game: React.FC = () => {
       {(gameState === 'playing' || gameState === 'paused') && (
         <>
           <GameCanvas 
+            key="game-canvas" // Add stable key
             isPaused={gameState === 'paused'} 
             onGameOver={handleGameOver}
           />

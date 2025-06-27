@@ -6,6 +6,7 @@ import { Pistol } from '../../weapons';
 
 export class Player implements IPlayer {
   private projectileManager: any = null; // Will be set by GameEngine
+  private instanceId: number = Date.now(); // Debug: track instance
   id: string = 'player';
   type: 'player' = 'player';
   transform = {
@@ -28,6 +29,11 @@ export class Player implements IPlayer {
   currentWeaponIndex: number = 0;
   score: number = 0;
 
+  // STEP 17: Damage and invulnerability properties
+  private lastDamageTime: number = 0;
+  private invulnerabilityDuration: number = 1000; // 1 second in milliseconds
+  private isInvulnerable: boolean = false;
+
   // Movement properties
   private acceleration: number = 20; // Units per second squared
   private deceleration: number = 15; // Units per second squared
@@ -48,6 +54,7 @@ export class Player implements IPlayer {
   private container: HTMLElement | null = null;
 
   constructor() {
+    console.log(`Creating new Player instance: ${this.instanceId}`);
     // Create player mesh group
     const group = new THREE.Group();
     
@@ -126,6 +133,15 @@ export class Player implements IPlayer {
       this.transform.position.z
     );
     this.mesh.rotation.y = this.transform.rotation.y;
+    
+    // STEP 17: Visual feedback for invulnerability
+    if (this.isInvulnerable) {
+      // Flash effect - toggle visibility rapidly
+      const flashRate = 100; // milliseconds
+      this.mesh.visible = Math.floor(Date.now() / flashRate) % 2 === 0;
+    } else {
+      this.mesh.visible = true;
+    }
   }
 
   private updateMovement(deltaTime: number, input: PlayerInput): void {
@@ -261,11 +277,31 @@ export class Player implements IPlayer {
   }
 
   public takeDamage(damage: number): void {
+    // STEP 17: Check invulnerability
+    const currentTime = Date.now();
+    if (currentTime - this.lastDamageTime < this.invulnerabilityDuration) {
+      console.log('Player is invulnerable, damage blocked');
+      return; // Still invulnerable, don't take damage
+    }
+
+    // Apply damage
+    const oldHealth = this.health;
     this.health -= damage;
+    this.lastDamageTime = currentTime;
+    this.isInvulnerable = true;
+    
+    console.log(`Player ${this.instanceId} took ${damage} damage. Health: ${oldHealth} -> ${this.health}`);
+    
     if (this.health <= 0) {
       this.health = 0;
       this.isDead = true;
     }
+    
+    // Reset invulnerability flag after duration
+    setTimeout(() => {
+      this.isInvulnerable = false;
+      console.log('Player invulnerability ended');
+    }, this.invulnerabilityDuration);
   }
 
   private updateBoundingBox(): void {
@@ -382,6 +418,19 @@ export class Player implements IPlayer {
       y: 0,
       z: Math.cos(angle)
     };
+  }
+  
+  public isCurrentlyInvulnerable(): boolean {
+    return this.isInvulnerable;
+  }
+  
+  public getHealth(): number {
+    console.log(`Player ${this.instanceId} getHealth() called: ${this.health}`);
+    return this.health;
+  }
+  
+  public getMaxHealth(): number {
+    return this.maxHealth;
   }
 
   public getCurrentWeapon(): Weapon | null {

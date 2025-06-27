@@ -120,6 +120,9 @@ export class GameEngine {
     // Register player with physics engine
     this.physicsEngine.addEntity(this.player);
     
+    // STEP 17: Log initial health values for debugging
+    console.log(`Game initialized - Player health: ${this.player.getHealth()}/${this.player.getMaxHealth()}`);
+    
     // Add test obstacles for collision testing
     this.createTestObstacles();
     
@@ -234,6 +237,9 @@ export class GameEngine {
     // Check projectile collisions
     this.checkProjectileCollisions();
     
+    // STEP 17: Check zombie-player collisions
+    this.checkZombiePlayerCollisions();
+    
     // Update physics
     this.physicsEngine.update(deltaTime);
     
@@ -252,8 +258,11 @@ export class GameEngine {
     
     // Update player health in store only if it changed
     const store = useGameStore.getState();
-    if (store.playerHealth !== this.player.health || store.playerMaxHealth !== this.player.maxHealth) {
-      store.setPlayerHealth(this.player.health, this.player.maxHealth);
+    const currentHealth = this.player.getHealth();
+    const maxHealth = this.player.getMaxHealth();
+    if (store.playerHealth !== currentHealth || store.playerMaxHealth !== maxHealth) {
+      console.log(`Health update: Player=${currentHealth}, Store=${store.playerHealth} -> updating store`);
+      store.setPlayerHealth(currentHealth, maxHealth);
     }
     
     // Update weapon info in store
@@ -491,5 +500,29 @@ export class GameEngine {
     setTimeout(() => {
       this.scene.remove(explosionGroup);
     }, 600);
+  }
+  
+  // STEP 17: Zombie-Player Collision
+  private checkZombiePlayerCollisions(): void {
+    const zombies = this.zombieManager.getZombies();
+    const playerPos = this.player.getPosition();
+    
+    zombies.forEach(zombie => {
+      if (zombie.isDead || !zombie.active) return;
+      
+      // Check if zombie is in attack range of player
+      if (zombie.isInAttackRange(playerPos)) {
+        // Check if zombie can attack (respects cooldown)
+        if (zombie.canAttack()) {
+          // Deal damage to player
+          console.log(`Before damage - Player health: ${this.player.getHealth()}`);
+          this.player.takeDamage(zombie.damage);
+          zombie.attack(); // Update zombie's last attack time
+          
+          // Visual feedback and debugging
+          console.log(`Zombie ${zombie.id} attacked player for ${zombie.damage} damage! Player health now: ${this.player.getHealth()}`);
+        }
+      }
+    });
   }
 }

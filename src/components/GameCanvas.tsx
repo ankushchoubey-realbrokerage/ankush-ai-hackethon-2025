@@ -13,14 +13,24 @@ interface GameCanvasProps {
 export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
+  const onGameOverRef = useRef(onGameOver);
   const [showDebug, setShowDebug] = useState(false);
+  
+  // Update ref when callback changes
+  useEffect(() => {
+    onGameOverRef.current = onGameOver;
+  }, [onGameOver]);
 
   useEffect(() => {
     if (!mountRef.current) return;
-
-    // Initialize game engine
-    engineRef.current = new GameEngine(mountRef.current, onGameOver);
-    engineRef.current.start();
+    
+    // Only create engine if it doesn't exist
+    if (!engineRef.current) {
+      console.log('GameCanvas: Creating new GameEngine');
+      // Initialize game engine
+      engineRef.current = new GameEngine(mountRef.current, () => onGameOverRef.current());
+      engineRef.current.start();
+    }
 
     // Handle window resize
     const handleResize = () => {
@@ -30,9 +40,9 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver }) 
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      engineRef.current?.destroy();
+      // Don't destroy on every unmount, only when component is truly unmounting
     };
-  }, [onGameOver]);
+  }, []); // Empty dependency array - only run once
 
   useEffect(() => {
     if (engineRef.current) {
@@ -70,6 +80,15 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver }) 
       velocity: player.getVelocity ? player.getVelocity() : undefined
     };
   };
+  
+  // Cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      console.log('GameCanvas: Component unmounting, destroying engine');
+      engineRef.current?.destroy();
+      engineRef.current = null;
+    };
+  }, []);
 
   return (
     <>

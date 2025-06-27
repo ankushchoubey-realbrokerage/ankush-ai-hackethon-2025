@@ -127,10 +127,14 @@ export const useGameStore = create<GameStore>()(
         gameStats: { ...state.gameStats, level }
       })),
       
-      setPlayerHealth: (health, maxHealth) => set((state) => ({ 
-        playerHealth: Math.max(0, Math.min(health, maxHealth || state.playerMaxHealth)),
-        playerMaxHealth: maxHealth || state.playerMaxHealth 
-      })),
+      setPlayerHealth: (health, maxHealth) => set((state) => {
+        const newHealth = Math.max(0, Math.min(health, maxHealth || state.playerMaxHealth));
+        console.log(`Store setPlayerHealth: ${health} (clamped to ${newHealth}), max: ${maxHealth || state.playerMaxHealth}`);
+        return { 
+          playerHealth: newHealth,
+          playerMaxHealth: maxHealth || state.playerMaxHealth 
+        };
+      }),
       
       // Reset
       resetGame: () => set(initialState),
