@@ -117,6 +117,9 @@ export class GameEngine {
     // Set projectile manager reference for player
     this.player.setProjectileManager(this.projectileManager);
     
+    // STEP 26: Initialize audio system with test sound
+    this.initializeAudio();
+    
     // Register player with physics engine
     this.physicsEngine.addEntity(this.player);
     
@@ -275,6 +278,31 @@ export class GameEngine {
     }
     
     this.renderer.render(this.scene, this.camera);
+  }
+
+  private async initializeAudio(): Promise<void> {
+    try {
+      // STEP 26: Load test sound with base64 encoded beep
+      // This is a simple sine wave beep sound encoded as base64
+      const testBeepBase64 = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
+      
+      await this.audioManager.loadSound('test-beep', {
+        src: [testBeepBase64],
+        volume: 0.3,
+        preload: true
+      }, 'ui');
+      
+      console.log('Audio system initialized successfully');
+      
+      // Play test sound after a short delay to ensure user interaction
+      setTimeout(() => {
+        console.log('Playing test beep sound...');
+        this.audioManager.playSound('test-beep', 0.5);
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Failed to initialize audio:', error);
+    }
   }
 
   public handleResize(): void {
