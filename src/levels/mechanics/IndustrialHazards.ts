@@ -73,7 +73,7 @@ export class SteamVent extends IndustrialHazard {
     
     // Warning light
     const lightGeometry = new THREE.SphereGeometry(0.1, 8, 8);
-    const lightMaterial = new THREE.MeshBasicMaterial({
+    const lightMaterial = new THREE.MeshStandardMaterial({
       color: 0xff0000,
       emissive: 0xff0000,
       emissiveIntensity: 0.5
@@ -141,7 +141,7 @@ export class SteamVent extends IndustrialHazard {
     // Make warning light blink
     const light = this.mesh.children[1] as THREE.Mesh;
     if (light && light.material) {
-      (light.material as THREE.MeshBasicMaterial).emissiveIntensity = 1;
+      (light.material as THREE.MeshStandardMaterial).emissiveIntensity = 1;
     }
     
     // Play steam sound
@@ -156,7 +156,7 @@ export class SteamVent extends IndustrialHazard {
     // Turn off warning light
     const light = this.mesh.children[1] as THREE.Mesh;
     if (light && light.material) {
-      (light.material as THREE.MeshBasicMaterial).emissiveIntensity = 0.5;
+      (light.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5;
     }
   }
   

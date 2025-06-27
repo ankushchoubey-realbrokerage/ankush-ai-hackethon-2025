@@ -473,7 +473,7 @@ export class TankZombie extends Zombie implements IBoss {
         if (material instanceof THREE.MeshBasicMaterial && 
             material.color.getHex() === 0x660000) {
           material.color.setHex(0xff0000);
-          material.emissiveIntensity = 2.0;
+          // MeshBasicMaterial doesn't have emissive, just make it brighter
         }
       }
     });

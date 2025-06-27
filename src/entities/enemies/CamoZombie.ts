@@ -96,7 +96,7 @@ export class CamoZombie extends Zombie {
         else if (material instanceof THREE.MeshBasicMaterial && 
                  (material.color.getHex() === 0xff0000)) {
           material.color.setHex(0x660000); // Darker red
-          material.emissiveIntensity = 0.2; // Less glow
+          // MeshBasicMaterial doesn't have emissive properties
         }
       }
     });
