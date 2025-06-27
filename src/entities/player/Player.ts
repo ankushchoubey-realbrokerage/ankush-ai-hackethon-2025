@@ -25,19 +25,54 @@ export class Player implements IPlayer {
   currentWeaponIndex: number = 0;
   score: number = 0;
 
-  private mesh: THREE.Mesh;
+  private mesh: THREE.Group;
 
   constructor() {
-    // Create player mesh
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const material = new THREE.MeshStandardMaterial({ 
+    // Create player mesh group
+    const group = new THREE.Group();
+    
+    // Body (main cube)
+    const bodyGeometry = new THREE.BoxGeometry(0.8, 1, 0.8);
+    const bodyMaterial = new THREE.MeshStandardMaterial({ 
       color: 0x0066cc,
       metalness: 0.2,
       roughness: 0.8
     });
-    this.mesh = new THREE.Mesh(geometry, material);
-    this.mesh.castShadow = true;
-    this.mesh.receiveShadow = true;
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    body.position.y = 0.5;
+    body.castShadow = true;
+    body.receiveShadow = true;
+    group.add(body);
+    
+    // Head (smaller cube on top)
+    const headGeometry = new THREE.BoxGeometry(0.6, 0.6, 0.6);
+    const headMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x0088ff,
+      metalness: 0.3,
+      roughness: 0.7
+    });
+    const head = new THREE.Mesh(headGeometry, headMaterial);
+    head.position.y = 1.3;
+    head.castShadow = true;
+    head.receiveShadow = true;
+    group.add(head);
+    
+    // Direction indicator (small box showing forward direction)
+    const directionGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.4);
+    const directionMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xffff00,
+      metalness: 0.5,
+      roughness: 0.5,
+      emissive: 0xffff00,
+      emissiveIntensity: 0.3
+    });
+    const direction = new THREE.Mesh(directionGeometry, directionMaterial);
+    direction.position.set(0, 0.8, 0.5);
+    direction.castShadow = true;
+    group.add(direction);
+    
+    // Create the final mesh
+    this.mesh = group;
     this.mesh.position.set(this.transform.position.x, this.transform.position.y, this.transform.position.z);
 
     // Initialize with pistol
@@ -52,6 +87,9 @@ export class Player implements IPlayer {
       isUnlimited: true,
       projectileSpeed: 20
     });
+    
+    // Update bounding box to match new size
+    this.updateBoundingBox();
   }
 
   public update(deltaTime: number, input: PlayerInput): void {
@@ -121,7 +159,15 @@ export class Player implements IPlayer {
     }
   }
 
-  public getMesh(): THREE.Mesh {
+  private updateBoundingBox(): void {
+    // Update bounding box based on player size
+    this.boundingBox = {
+      min: { x: -0.4, y: 0, z: -0.4 },
+      max: { x: 0.4, y: 1.6, z: 0.4 }
+    };
+  }
+
+  public getMesh(): THREE.Group {
     return this.mesh;
   }
 
@@ -131,5 +177,23 @@ export class Player implements IPlayer {
 
   public isPlayerDead(): boolean {
     return this.isDead;
+  }
+
+  public getRotation(): Vector3 {
+    return this.transform.rotation;
+  }
+
+  public setPosition(x: number, y: number, z: number): void {
+    this.transform.position.x = x;
+    this.transform.position.y = y;
+    this.transform.position.z = z;
+    this.mesh.position.set(x, y, z);
+  }
+
+  public setRotation(x: number, y: number, z: number): void {
+    this.transform.rotation.x = x;
+    this.transform.rotation.y = y;
+    this.transform.rotation.z = z;
+    this.mesh.rotation.set(x, y, z);
   }
 }

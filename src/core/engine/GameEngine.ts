@@ -108,27 +108,29 @@ export class GameEngine {
     // Add player to scene
     this.scene.add(this.player.getMesh());
     
-    // Add test cubes for camera verification
-    const testGeometry = new THREE.BoxGeometry(2, 2, 2);
-    const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00];
-    const positions = [
-      { x: 5, y: 1, z: 5 },
-      { x: -5, y: 1, z: 5 },
-      { x: 5, y: 1, z: -5 },
-      { x: -5, y: 1, z: -5 }
+    // Add reference markers for testing (smaller, less intrusive)
+    const markerGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+    const markerMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xff0000,
+      metalness: 0.5,
+      roughness: 0.5,
+      emissive: 0xff0000,
+      emissiveIntensity: 0.2
+    });
+    
+    // Add a few position markers for spatial reference
+    const markerPositions = [
+      { x: 10, y: 0.3, z: 0 },
+      { x: -10, y: 0.3, z: 0 },
+      { x: 0, y: 0.3, z: 10 },
+      { x: 0, y: 0.3, z: -10 }
     ];
     
-    positions.forEach((pos, index) => {
-      const testMaterial = new THREE.MeshStandardMaterial({ 
-        color: colors[index],
-        metalness: 0.3,
-        roughness: 0.7
-      });
-      const testCube = new THREE.Mesh(testGeometry, testMaterial);
-      testCube.position.set(pos.x, pos.y, pos.z);
-      testCube.castShadow = true;
-      testCube.receiveShadow = true;
-      this.scene.add(testCube);
+    markerPositions.forEach(pos => {
+      const marker = new THREE.Mesh(markerGeometry, markerMaterial.clone());
+      marker.position.set(pos.x, pos.y, pos.z);
+      marker.castShadow = true;
+      this.scene.add(marker);
     });
     
     // Load first level
