@@ -117,6 +117,9 @@ export class GameEngine {
     // Set projectile manager reference for player
     this.player.setProjectileManager(this.projectileManager);
     
+    // STEP 27: Set audio manager reference for player
+    this.player.setAudioManager(this.audioManager);
+    
     // STEP 26: Initialize audio system with test sound
     this.initializeAudio();
     
@@ -299,6 +302,9 @@ export class GameEngine {
         console.log('Playing test beep sound...');
         this.audioManager.playSound('test-beep', 0.5);
       }, 1000);
+      
+      // STEP 27: Initialize weapon sounds
+      await this.audioManager.initializeWeaponSounds();
       
     } catch (error) {
       console.error('Failed to initialize audio:', error);

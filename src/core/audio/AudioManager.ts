@@ -28,6 +28,14 @@ export class AudioManager {
     music: new Set<string>()
   };
 
+  // STEP 27: Weapon sound placeholder data
+  private static readonly WEAPON_SOUNDS = {
+    // Pistol sound: short, punchy click
+    pistol_fire: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // Machine gun sound: rapid, continuous
+    machine_gun_fire: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA'
+  };
+
   constructor() {
     // Initialize Howler global settings
     Howler.volume(this.masterVolume);
@@ -295,5 +303,52 @@ export class AudioManager {
     
     // Reset Howler
     Howler.unload();
+  }
+
+  /**
+   * STEP 27: Initialize weapon sounds with proper pooling
+   */
+  public async initializeWeaponSounds(): Promise<void> {
+    try {
+      // Load pistol sound with small pool
+      await this.loadSound('pistol_fire', {
+        src: [AudioManager.WEAPON_SOUNDS.pistol_fire],
+        volume: 0.4,
+        pool: 5, // Pool of 5 for rapid firing
+        preload: true
+      }, 'weapon');
+
+      // Load machine gun sound with larger pool
+      await this.loadSound('machine_gun_fire', {
+        src: [AudioManager.WEAPON_SOUNDS.machine_gun_fire],
+        volume: 0.3,
+        pool: 10, // Larger pool for automatic fire
+        preload: true
+      }, 'weapon');
+
+      console.log('Weapon sounds initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize weapon sounds:', error);
+    }
+  }
+
+  /**
+   * Play weapon sound with automatic pooling
+   */
+  public playWeaponSound(weaponType: 'pistol' | 'machine_gun', volume?: number): number | undefined {
+    const soundName = weaponType === 'pistol' ? 'pistol_fire' : 'machine_gun_fire';
+    return this.playSound(soundName, volume);
+  }
+
+  /**
+   * Get a singleton instance (optional pattern for easy access)
+   */
+  private static instance: AudioManager | null = null;
+  
+  public static getInstance(): AudioManager {
+    if (!AudioManager.instance) {
+      AudioManager.instance = new AudioManager();
+    }
+    return AudioManager.instance;
   }
 }
