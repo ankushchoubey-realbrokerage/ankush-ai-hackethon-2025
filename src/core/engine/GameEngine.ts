@@ -7,7 +7,9 @@ import { Player } from '../../entities/player/Player';
 import { ZombieManager } from '../../entities/enemies/ZombieManager';
 import { ProjectileManager } from '../../entities/projectiles/ProjectileManager';
 import { LevelManager } from '../../levels/level-system/LevelManager';
+import { LevelLoader } from '../../levels/level-system/LevelLoader';
 import { GameStats, Entity, Vector3 } from '../../types';
+import { LevelTransitionData } from '../../types/level.types';
 import { PerformanceMonitor } from '../../utils/PerformanceMonitor';
 import { CollisionDebugger } from '../../utils/CollisionDebugger';
 import { useGameStore } from '../../store/gameStore';
@@ -41,6 +43,11 @@ export class GameEngine {
   
   // STEP 29: Particle System
   private particleSystem: ParticleSystem;
+  
+  // STEP 31: Level System Architecture
+  private levelLoader: LevelLoader;
+  private isTransitioning: boolean = false;
+  private transitionData: LevelTransitionData | null = null;
 
   constructor(container: HTMLElement, onGameOver: () => void) {
     this.container = container;
@@ -101,6 +108,14 @@ export class GameEngine {
     
     // STEP 29: Initialize particle system
     this.particleSystem = new ParticleSystem(this.scene, 1000);
+    
+    // STEP 31: Initialize level loader
+    this.levelLoader = new LevelLoader(this.scene);
+    
+    // STEP 31: Make gameEngine globally accessible for testing
+    if (import.meta.env.DEV) {
+      (window as any).gameEngine = this;
+    }
     
     this.init();
   }
@@ -265,6 +280,23 @@ export class GameEngine {
     
     // STEP 29: Update particle system
     this.particleSystem.update(deltaTime);
+    
+    // STEP 31: Update level loader (weapon pickups animation)
+    this.updateLevelLoader(deltaTime);
+    
+    // STEP 31: Check win conditions
+    if (this.checkWinConditions()) {
+      console.log('Level completed!');
+      // Trigger level completion logic
+      this.onLevelComplete();
+    }
+    
+    // STEP 31: Debug level loading
+    if ((window as any).debugLoadLevel) {
+      const levelId = (window as any).debugLoadLevel;
+      (window as any).debugLoadLevel = null;
+      this.loadLevel(levelId);
+    }
     
     // Update collision debug visualization
     if (this.collisionDebugger.isEnabled()) {
@@ -673,5 +705,227 @@ export class GameEngine {
         }
       }
     });
+  }
+  
+  // STEP 31: Level System Architecture - Level Transition Methods
+  
+  /**
+   * Load a specific level
+   */
+  public async loadLevel(levelId: number): Promise<boolean> {
+    if (this.isTransitioning) {
+      console.warn('Level transition already in progress');
+      return false;
+    }
+    
+    this.isTransitioning = true;
+    
+    try {
+      // Pause game during transition
+      const wasRunning = this.isRunning;
+      this.pause();
+      
+      // Save current player state if transitioning from another level
+      if (this.levelLoader!.getCurrentLevel()) {
+        this.saveTransitionData();
+      }
+      
+      // Clear current level entities
+      this.clearLevelEntities();
+      
+      // Load new level
+      const result = await this.levelLoader!.loadLevel(levelId);
+      
+      if (!result.success) {
+        console.error('Failed to load level:', result.error);
+        this.isTransitioning = false;
+        return false;
+      }
+      
+      // Initialize level entities
+      const levelData = result.level!;
+      this.initializeLevelEntities(levelData);
+      
+      // Restore player state if transitioning
+      if (this.transitionData) {
+        this.restorePlayerState();
+      }
+      
+      // Update level manager
+      this.levelManager.setCurrentLevel(levelId);
+      
+      // Resume game if it was running
+      if (wasRunning) {
+        this.start();
+      }
+      
+      this.isTransitioning = false;
+      return true;
+      
+    } catch (error) {
+      console.error('Error during level transition:', error);
+      this.isTransitioning = false;
+      return false;
+    }
+  }
+  
+  /**
+   * Transition to next level
+   */
+  public async transitionToNextLevel(): Promise<boolean> {
+    const currentLevel = this.levelLoader?.getCurrentLevel();
+    if (!currentLevel) {
+      console.error('No current level to transition from');
+      return false;
+    }
+    
+    const nextLevelId = currentLevel.id + 1;
+    return this.loadLevel(nextLevelId);
+  }
+  
+  /**
+   * Save player state for transition
+   */
+  private saveTransitionData(): void {
+    const currentLevel = this.levelLoader!.getCurrentLevel()!;
+    const playerWeapons = this.player.weapons.map(w => w.id);
+    const playerAmmo = new Map<string, number>();
+    
+    // Save ammo for each weapon
+    this.player.weapons.forEach(weapon => {
+      playerAmmo.set(weapon.id, weapon.ammo);
+    });
+    
+    this.transitionData = {
+      fromLevel: currentLevel.id,
+      toLevel: currentLevel.id + 1,
+      playerHealth: this.player.getHealth(),
+      playerWeapons,
+      playerAmmo,
+      score: useGameStore.getState().gameStats.score,
+      time: useGameStore.getState().gameStats.time
+    };
+  }
+  
+  /**
+   * Restore player state after transition
+   */
+  private restorePlayerState(): void {
+    if (!this.transitionData) return;
+    
+    // Restore health
+    this.player.health = this.transitionData.playerHealth;
+    
+    // Restore weapons and ammo
+    // This would need weapon restoration logic
+    
+    // Restore score
+    useGameStore.getState().setScore(this.transitionData.score);
+    
+    this.transitionData = null;
+  }
+  
+  /**
+   * Clear all level-specific entities
+   */
+  private clearLevelEntities(): void {
+    // Clear zombies
+    this.zombieManager.clearAllZombies();
+    
+    // Clear projectiles
+    this.projectileManager.clearAllProjectiles();
+    
+    // Clear particles
+    if (this.particleSystem) {
+      this.particleSystem.clear();
+    }
+    
+    // Level loader handles its own cleanup
+    if (this.levelLoader) {
+      this.levelLoader.cleanupLevel();
+    }
+  }
+  
+  /**
+   * Initialize entities for the loaded level
+   */
+  private initializeLevelEntities(levelData: any): void {
+    // Set player start position
+    if (levelData.playerStartPosition) {
+      this.player.setPosition(
+        levelData.playerStartPosition.x,
+        levelData.playerStartPosition.y,
+        levelData.playerStartPosition.z
+      );
+    }
+    
+    // Level manager will handle wave spawning
+    // Weapon pickups are handled by level loader
+  }
+  
+  /**
+   * Check win conditions for current level
+   */
+  public checkWinConditions(): boolean {
+    const levelData = this.levelLoader?.getCurrentLevel();
+    if (!levelData) return false;
+    
+    for (const condition of levelData.winConditions) {
+      switch (condition.type) {
+        case 'kill_all':
+          // Check if all zombies are dead and no more waves
+          const zombies = this.zombieManager.getZombies();
+          const allDead = zombies.length === 0 || zombies.every(z => z.isDead);
+          const noMoreWaves = !this.levelManager.hasMoreWaves();
+          if (allDead && noMoreWaves) {
+            return true;
+          }
+          break;
+          
+        case 'survive_time':
+          // Check if enough time has passed
+          if (condition.value && useGameStore.getState().gameStats.time >= condition.value) {
+            return true;
+          }
+          break;
+          
+        case 'kill_boss':
+          // Check if boss is defeated
+          // This would need boss tracking logic
+          break;
+          
+        case 'reach_exit':
+          // Check if player reached exit zone
+          // This would need exit zone logic
+          break;
+      }
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Update level loader animations
+   */
+  private updateLevelLoader(deltaTime: number): void {
+    if (this.levelLoader) {
+      this.levelLoader.updatePickups(deltaTime);
+    }
+  }
+  
+  /**
+   * Handle level completion
+   */
+  private onLevelComplete(): void {
+    // Pause the game
+    this.pause();
+    
+    // Show level complete UI
+    console.log('Level Complete! Score:', useGameStore.getState().gameStats.score);
+    
+    // Transition to next level after a delay
+    setTimeout(() => {
+      this.transitionToNextLevel();
+    }, 3000);
   }
 }

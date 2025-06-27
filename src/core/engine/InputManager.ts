@@ -60,6 +60,14 @@ export class InputManager {
       this.pauseToggled = true;
     }
     
+    // STEP 31: Level switching debug keys (1-5)
+    if (this.debugMode && e.key >= '1' && e.key <= '5') {
+      const levelId = parseInt(e.key);
+      console.log(`Debug: Loading level ${levelId}`);
+      // This will be handled by GameEngine
+      (window as any).debugLoadLevel = levelId;
+    }
+    
     // Log key presses in debug mode
     if (this.debugMode && import.meta.env.DEV) {
       console.log('Key pressed:', e.key);

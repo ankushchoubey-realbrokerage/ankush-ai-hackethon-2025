@@ -1,8 +1,9 @@
-import { Level, Wave } from '../../types';
+import { Wave } from '../../types';
+import { LevelData } from '../../types/level.types';
 import { levelConfigs } from '../maps/levelConfigs';
 
 export class LevelManager {
-  private currentLevel: Level | null = null;
+  private currentLevel: LevelData | null = null;
   private currentWaveIndex: number = 0;
   private isWaveActive: boolean = false;
 
@@ -41,11 +42,21 @@ export class LevelManager {
            !this.isWaveActive;
   }
 
-  public getCurrentLevel(): Level | null {
+  public getCurrentLevel(): LevelData | null {
     return this.currentLevel;
   }
 
   public getCurrentWaveNumber(): number {
     return this.currentWaveIndex + 1;
+  }
+  
+  // STEP 31: Additional methods for level system
+  public hasMoreWaves(): boolean {
+    if (!this.currentLevel) return false;
+    return this.currentWaveIndex < this.currentLevel.waves.length;
+  }
+  
+  public setCurrentLevel(levelNumber: number): void {
+    this.loadLevel(levelNumber);
   }
 }

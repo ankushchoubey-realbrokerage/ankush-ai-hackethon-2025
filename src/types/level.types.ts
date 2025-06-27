@@ -36,3 +36,48 @@ export interface EnvironmentalHazard {
   dimensions: Vector3;
   damage?: number;
 }
+
+// STEP 31: Level System Architecture - Additional interfaces
+export interface LevelData extends Level {
+  weaponPickups?: WeaponPickup[];
+  winConditions: WinCondition[];
+  obstacles?: LevelObstacle[];
+  ambientSound?: string;
+  fogDensity?: number;
+}
+
+export interface WeaponPickup {
+  weaponType: string; // Using string to avoid type conflicts
+  position: Vector3;
+  respawnTime?: number;
+}
+
+export interface WinCondition {
+  type: 'kill_all' | 'survive_time' | 'kill_boss' | 'reach_exit';
+  value?: number; // For survive_time (seconds) or kill count
+}
+
+export interface LevelObstacle {
+  id: string;
+  type: 'wall' | 'car' | 'rock' | 'building' | 'tree';
+  position: Vector3;
+  rotation: Vector3;
+  scale: Vector3;
+  destructible?: boolean;
+}
+
+export interface LevelTransitionData {
+  fromLevel: number;
+  toLevel: number;
+  playerHealth: number;
+  playerWeapons: string[];
+  playerAmmo: Map<string, number>;
+  score: number;
+  time: number;
+}
+
+export interface LevelLoadResult {
+  success: boolean;
+  level?: LevelData;
+  error?: string;
+}

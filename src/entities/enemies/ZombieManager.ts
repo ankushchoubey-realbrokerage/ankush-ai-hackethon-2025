@@ -149,4 +149,9 @@ export class ZombieManager {
       this.removeZombie(id);
     });
   }
+  
+  // STEP 31: Alias for level system compatibility
+  public clearAllZombies(): void {
+    this.clear();
+  }
 }

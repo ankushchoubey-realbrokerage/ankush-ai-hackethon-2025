@@ -103,6 +103,11 @@ export class ProjectileManager {
     });
   }
   
+  // STEP 31: Alias for level system compatibility
+  public clearAllProjectiles(): void {
+    this.clear();
+  }
+  
   public getProjectileCount(): number {
     return this.projectiles.size;
   }
