@@ -4,6 +4,7 @@
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
+  max-height: 100vh;
   background: #0a0a0a;
   background-image: 
     radial-gradient(ellipse at top, #1a0000 0%, transparent 70%),
@@ -12,12 +13,13 @@
   padding: 2rem;
   position: relative;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .settingsTitle {
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: bold;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   text-transform: uppercase;
   letter-spacing: 3px;
   color: #b30000;
@@ -25,6 +27,7 @@
     0 0 10px rgba(179, 0, 0, 0.8),
     0 0 20px rgba(179, 0, 0, 0.6),
     2px 2px 4px rgba(0, 0, 0, 0.8);
+  flex-shrink: 0;
 }
 
 .settingsContainer {
@@ -35,7 +38,9 @@
   border-radius: 8px;
   padding: 2rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  flex-shrink: 1;
+  overflow-y: auto;
 }
 
 .settingsSection {
@@ -205,6 +210,8 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  margin-bottom: 2rem;
+  flex-shrink: 0;
 }
 
 .backButton::before {
