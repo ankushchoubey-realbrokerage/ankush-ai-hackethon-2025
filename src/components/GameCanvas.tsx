@@ -52,7 +52,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver }) 
     if (!player) return null;
     return {
       position: player.getPosition(),
-      rotation: player.getRotation()
+      rotation: player.getRotation(),
+      velocity: player.getVelocity ? player.getVelocity() : undefined
     };
   };
 

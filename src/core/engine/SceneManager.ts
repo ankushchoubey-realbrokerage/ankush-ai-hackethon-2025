@@ -177,6 +177,63 @@ export class SceneManager {
       rock.receiveShadow = true;
       this.scene.add(rock);
     });
+
+    // Add boundary walls (visual indicators)
+    this.addBoundaryWalls();
+  }
+
+  private addBoundaryWalls(): void {
+    const wallMaterial = new THREE.MeshStandardMaterial({
+      color: 0x444444,
+      roughness: 0.9,
+      metalness: 0.1,
+      transparent: true,
+      opacity: 0.5
+    });
+
+    const wallHeight = 5;
+    const wallThickness = 0.5;
+    const boundarySize = 45;
+
+    // North wall
+    const northWall = new THREE.Mesh(
+      new THREE.BoxGeometry(boundarySize * 2, wallHeight, wallThickness),
+      wallMaterial
+    );
+    northWall.position.set(0, wallHeight / 2, -boundarySize);
+    northWall.castShadow = true;
+    northWall.receiveShadow = true;
+    this.scene.add(northWall);
+
+    // South wall
+    const southWall = new THREE.Mesh(
+      new THREE.BoxGeometry(boundarySize * 2, wallHeight, wallThickness),
+      wallMaterial
+    );
+    southWall.position.set(0, wallHeight / 2, boundarySize);
+    southWall.castShadow = true;
+    southWall.receiveShadow = true;
+    this.scene.add(southWall);
+
+    // East wall
+    const eastWall = new THREE.Mesh(
+      new THREE.BoxGeometry(wallThickness, wallHeight, boundarySize * 2),
+      wallMaterial
+    );
+    eastWall.position.set(boundarySize, wallHeight / 2, 0);
+    eastWall.castShadow = true;
+    eastWall.receiveShadow = true;
+    this.scene.add(eastWall);
+
+    // West wall
+    const westWall = new THREE.Mesh(
+      new THREE.BoxGeometry(wallThickness, wallHeight, boundarySize * 2),
+      wallMaterial
+    );
+    westWall.position.set(-boundarySize, wallHeight / 2, 0);
+    westWall.castShadow = true;
+    westWall.receiveShadow = true;
+    this.scene.add(westWall);
   }
 
   public updateCameraPosition(playerPosition: Vector3): void {

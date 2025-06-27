@@ -25,6 +25,20 @@ export class Player implements IPlayer {
   currentWeaponIndex: number = 0;
   score: number = 0;
 
+  // Movement properties
+  private acceleration: number = 20; // Units per second squared
+  private deceleration: number = 15; // Units per second squared
+  private maxSpeed: number = 5; // Max units per second
+  private currentSpeed = { x: 0, z: 0 }; // Current actual speed
+
+  // Movement boundaries
+  private boundaries = {
+    minX: -45,
+    maxX: 45,
+    minZ: -45,
+    maxZ: 45
+  };
+
   private mesh: THREE.Group;
 
   constructor() {
@@ -116,26 +130,90 @@ export class Player implements IPlayer {
   }
 
   private updateMovement(deltaTime: number, input: PlayerInput): void {
-    const moveVector = { x: 0, y: 0, z: 0 };
+    // Get input direction
+    const inputVector = { x: 0, z: 0 };
 
-    if (input.movement.up) moveVector.z -= 1;
-    if (input.movement.down) moveVector.z += 1;
-    if (input.movement.left) moveVector.x -= 1;
-    if (input.movement.right) moveVector.x += 1;
+    if (input.movement.up) inputVector.z -= 1;
+    if (input.movement.down) inputVector.z += 1;
+    if (input.movement.left) inputVector.x -= 1;
+    if (input.movement.right) inputVector.x += 1;
 
     // Normalize diagonal movement
-    const length = Math.sqrt(moveVector.x * moveVector.x + moveVector.z * moveVector.z);
-    if (length > 0) {
-      moveVector.x /= length;
-      moveVector.z /= length;
+    const inputLength = Math.sqrt(inputVector.x * inputVector.x + inputVector.z * inputVector.z);
+    if (inputLength > 0) {
+      inputVector.x /= inputLength;
+      inputVector.z /= inputLength;
     }
 
-    // Apply movement
-    this.velocity.x = moveVector.x * this.speed;
-    this.velocity.z = moveVector.z * this.speed;
+    // Apply acceleration or deceleration
+    if (inputLength > 0) {
+      // Accelerate towards target velocity
+      const targetVelocityX = inputVector.x * this.maxSpeed;
+      const targetVelocityZ = inputVector.z * this.maxSpeed;
+      
+      // Smooth acceleration
+      this.currentSpeed.x = this.smoothAcceleration(
+        this.currentSpeed.x,
+        targetVelocityX,
+        this.acceleration * deltaTime
+      );
+      this.currentSpeed.z = this.smoothAcceleration(
+        this.currentSpeed.z,
+        targetVelocityZ,
+        this.acceleration * deltaTime
+      );
+    } else {
+      // Decelerate to stop
+      this.currentSpeed.x = this.smoothDeceleration(
+        this.currentSpeed.x,
+        this.deceleration * deltaTime
+      );
+      this.currentSpeed.z = this.smoothDeceleration(
+        this.currentSpeed.z,
+        this.deceleration * deltaTime
+      );
+    }
 
-    this.transform.position.x += this.velocity.x * deltaTime;
-    this.transform.position.z += this.velocity.z * deltaTime;
+    // Update velocity
+    this.velocity.x = this.currentSpeed.x;
+    this.velocity.z = this.currentSpeed.z;
+
+    // Apply movement with boundaries
+    const newX = this.transform.position.x + this.velocity.x * deltaTime;
+    const newZ = this.transform.position.z + this.velocity.z * deltaTime;
+
+    // Clamp to boundaries
+    this.transform.position.x = Math.max(
+      this.boundaries.minX,
+      Math.min(this.boundaries.maxX, newX)
+    );
+    this.transform.position.z = Math.max(
+      this.boundaries.minZ,
+      Math.min(this.boundaries.maxZ, newZ)
+    );
+
+    // Stop velocity if we hit a boundary
+    if (this.transform.position.x === this.boundaries.minX || 
+        this.transform.position.x === this.boundaries.maxX) {
+      this.currentSpeed.x = 0;
+    }
+    if (this.transform.position.z === this.boundaries.minZ || 
+        this.transform.position.z === this.boundaries.maxZ) {
+      this.currentSpeed.z = 0;
+    }
+  }
+
+  private smoothAcceleration(current: number, target: number, maxDelta: number): number {
+    const diff = target - current;
+    const delta = Math.sign(diff) * Math.min(Math.abs(diff), maxDelta);
+    return current + delta;
+  }
+
+  private smoothDeceleration(current: number, maxDelta: number): number {
+    if (Math.abs(current) <= maxDelta) {
+      return 0;
+    }
+    return current - Math.sign(current) * maxDelta;
   }
 
   private updateRotation(mousePosition: { x: number; y: number }): void {
@@ -195,5 +273,9 @@ export class Player implements IPlayer {
     this.transform.rotation.y = y;
     this.transform.rotation.z = z;
     this.mesh.rotation.set(x, y, z);
+  }
+
+  public getVelocity(): Vector3 {
+    return { ...this.velocity };
   }
 }
