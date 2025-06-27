@@ -1,10 +1,21 @@
 import React from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { useCurrentWeapon } from '../../store/weaponStore';
+import { useBossStore } from '../../store/bossStore';
+import { BossHealthBar } from '../components/BossHealthBar';
 
 export const HUD: React.FC = () => {
   const { gameStats, playerHealth, playerMaxHealth } = useGameStore();
   const currentWeapon = useCurrentWeapon();
+  const { 
+    bossName, 
+    bossHealth, 
+    bossMaxHealth, 
+    bossPhase, 
+    isVisible, 
+    lastDamage, 
+    specialAttackWarning 
+  } = useBossStore();
   
   const weaponName = currentWeapon?.name || 'None';
   const ammo = currentWeapon?.ammo || 0;
@@ -16,16 +27,28 @@ export const HUD: React.FC = () => {
                      healthPercentage > 30 ? '#FFC107' : '#F44336';
 
   return (
-    <div style={{
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      padding: '20px',
-      pointerEvents: 'none',
-      userSelect: 'none',
-      fontFamily: 'Arial, sans-serif'
-    }}>
+    <>
+      {/* Boss Health Bar */}
+      <BossHealthBar
+        bossName={bossName}
+        currentHealth={bossHealth}
+        maxHealth={bossMaxHealth}
+        phase={bossPhase}
+        visible={isVisible}
+        lastDamage={lastDamage}
+        specialAttackWarning={specialAttackWarning}
+      />
+      
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        padding: '20px',
+        pointerEvents: 'none',
+        userSelect: 'none',
+        fontFamily: 'Arial, sans-serif'
+      }}>
       {/* Health Bar */}
       <div style={{
         display: 'flex',
@@ -93,5 +116,6 @@ export const HUD: React.FC = () => {
         <div>💀 Zombies: <span style={{ color: '#F44336' }}>{gameStats.zombiesKilled}</span></div>
       </div>
     </div>
+    </>
   );
 };

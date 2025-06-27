@@ -14,6 +14,9 @@ import { useGameStore } from '../../store/gameStore';
 import { useWeaponStore } from '../../store/weaponStore';
 import { ParticleSystem } from '../../effects/ParticleSystem';
 import { FogSystem } from '../../effects/FogSystem';
+import { BossManager } from '../../entities/bosses/BossSystem';
+import { TankZombie } from '../../entities/bosses/TankZombie';
+import { useBossStore } from '../../store/bossStore';
 
 export class GameEngine {
   private renderer: THREE.WebGLRenderer;
@@ -44,6 +47,8 @@ export class GameEngine {
   private particleSystem: ParticleSystem;
   // STEP 38: Fog System
   private fogSystem: FogSystem;
+  // STEP 40: Boss System
+  private bossManager: BossManager;
 
   constructor(container: HTMLElement, onGameOver: () => void) {
     this.container = container;
@@ -109,6 +114,15 @@ export class GameEngine {
     // STEP 38: Initialize fog system
     this.fogSystem = new FogSystem(this.scene);
     this.fogSystem.setAudioManager(this.audioManager);
+    
+    // STEP 40: Initialize boss system
+    this.bossManager = new BossManager();
+    this.bossManager.setAudioManager(this.audioManager);
+    this.bossManager.setParticleSystem(this.particleSystem);
+    this.setupBossCallbacks();
+    
+    // Make boss manager globally accessible for TankZombie
+    (window as any).bossManager = this.bossManager;
     
     this.init();
   }
@@ -188,6 +202,11 @@ export class GameEngine {
     // Load first level (changed to industrial for testing)
     this.levelManager.loadLevel(5); // Industrial level for testing
     this.configureLevelEnvironment();
+    
+    // STEP 40: Spawn boss after a delay for testing
+    setTimeout(() => {
+      this.spawnBoss();
+    }, 5000); // Spawn boss after 5 seconds
   }
   
   private configureLevelEnvironment(): void {
@@ -296,6 +315,75 @@ export class GameEngine {
       });
     });
   }
+  
+  private setupBossCallbacks(): void {
+    const bossStore = useBossStore.getState();
+    
+    this.bossManager.setCallbacks({
+      onBossSpawn: (boss) => {
+        bossStore.setBoss(boss);
+        console.log('Boss spawned:', boss.name);
+      },
+      onPhaseChange: (boss, phase) => {
+        bossStore.setBossPhase(phase);
+        
+        // Show warning for special attacks
+        if (phase === 2) {
+          bossStore.showSpecialAttackWarning('Boss Enraged! Ground Slam Attack Unlocked!');
+        } else if (phase === 3) {
+          bossStore.showSpecialAttackWarning('Boss Berserk! Maximum Rage!');
+        }
+      },
+      onSpecialAttack: (boss, attackName) => {
+        bossStore.showSpecialAttackWarning(attackName);
+      },
+      onBossDamaged: (boss, damage) => {
+        bossStore.updateBossHealth(boss.health, damage);
+      },
+      onBossDefeat: (boss) => {
+        bossStore.hideBossUI();
+        
+        // Add bonus score
+        const gameStore = useGameStore.getState();
+        gameStore.addScore(5000); // Boss defeat bonus
+        
+        // Show victory message after delay
+        setTimeout(() => {
+          console.log('Boss defeated! Victory!');
+          // Could trigger level completion here
+        }, 3000);
+      }
+    });
+  }
+  
+  private spawnBoss(): void {
+    const currentLevel = this.levelManager.getCurrentLevel();
+    if (!currentLevel || currentLevel.theme !== 'industrial') return;
+    
+    // Spawn Tank Zombie boss in the arena
+    const bossPosition = { x: 0, y: 0, z: -30 }; // Arena center
+    const tankBoss = new TankZombie(bossPosition);
+    
+    // Set up boss systems
+    tankBoss.setAudioManager(this.audioManager);
+    tankBoss.setParticleSystem(this.particleSystem);
+    tankBoss.setOnSummonCallback((position) => {
+      // Spawn regular zombie at position
+      this.zombieManager.spawnZombie(position, 'basic');
+    });
+    
+    // Add to scene
+    this.scene.add(tankBoss.getMesh());
+    
+    // Register with physics
+    this.physicsEngine.addEntity(tankBoss);
+    
+    // Add to zombie manager for updates
+    (this.zombieManager as any).zombies.set(tankBoss.id, tankBoss);
+    
+    // Start boss fight
+    this.bossManager.startBossFight(tankBoss);
+  }
 
   public start(): void {
     this.isRunning = true;
@@ -368,6 +456,9 @@ export class GameEngine {
     
     // Update zombies
     this.zombieManager.update(deltaTime, this.player.getPosition());
+    
+    // STEP 40: Update boss manager
+    this.bossManager.update(deltaTime, this.player.getPosition());
     
     // Update projectiles
     this.projectileManager.update(deltaTime);
