@@ -78,12 +78,24 @@ src/
    - Screen boundaries
 
 2. **Player Character**
-   - 8-directional movement
+   - 8-directional movement (WASD keys)
+   - Mouse pointer for aiming
    - Health system
-   - Weapon switching
+   - Weapon switching (number keys or scroll wheel)
+   - Auto-pickup items on collision
    - Death/respawn mechanics
 
-3. **Weapon System**
+3. **Control Scheme**
+   | Action | Control |
+   |--------|---------|
+   | Movement | W (up), A (left), S (down), D (right) |
+   | Aim | Mouse pointer |
+   | Fire | Spacebar |
+   | Pick up items | Automatic on collision |
+   | Switch weapons | Number keys (1-4) or scroll wheel |
+   | Pause | ESC |
+
+4. **Weapon System**
    | Weapon | Damage | Fire Rate | Ammo | Special |
    |--------|--------|-----------|------|---------|
    | Pistol | Low | Medium | Unlimited | Starting weapon |
@@ -91,34 +103,50 @@ src/
    | Shotgun | High | Low | Limited | Spread shot |
    | Rocket Launcher | Very High | Very Low | Limited | Area damage |
 
-4. **Enemy System**
+5. **Enemy System**
    - Basic zombie AI (pathfinding to player)
    - Different zombie types per level
    - Wave spawning system
    - Boss zombies (levels 5 & 10)
 
-5. **Level Progression**
-   | Level | Theme | Difficulty | Special Features |
-   |-------|-------|------------|------------------|
-   | 1 | Simple Map | Easy | Tutorial elements |
-   | 2 | City Streets | Easy-Medium | More zombies |
-   | 3 | Volcano | Medium | Environmental hazards |
-   | 4 | Forest | Medium | Limited visibility |
-   | 5 | Industrial | Medium-Hard | Boss battle |
-   | 6 | Arctic | Hard | Slippery surfaces |
-   | 7 | Desert | Hard | Sandstorms |
-   | 8 | Underwater Base | Very Hard | Oxygen management |
-   | 9 | Space Station | Very Hard | Low gravity |
-   | 10 | Hell | Extreme | Final boss |
+6. **Detailed Level Progression**
 
-6. **Audio System**
+   | Level | Theme | Zombies | Waves | Special Enemies | Environmental Features | Weapons Available | Boss |
+   |-------|-------|---------|-------|-----------------|----------------------|-------------------|------|
+   | 1 | Simple Map | 10 | 2 (5 each) | Basic only | Open area, barriers | Pistol | None |
+   | 2 | City Streets | 20 | 3 (5, 7, 8) | Fast zombies (25%) | Cars as cover, narrow alleys | + Machine Gun | None |
+   | 3 | Volcano | 35 | 4 (5, 8, 10, 12) | Fire-resistant (30%) | Lava pools (damage), smoke areas | + Shotgun | None |
+   | 4 | Forest | 50 | 4 (10, 12, 13, 15) | Camouflaged (40%) | Dense trees, fog, limited vision | Same as 3 | None |
+   | 5 | Industrial | 60 | 5 (10, 10, 15, 15, 10) | Armored zombies | Machinery, conveyor belts | + Rocket Launcher | Tank Zombie (500 HP) |
+   | 6 | Arctic | 75 | 5 (12, 13, 15, 17, 18) | Ice zombies (slow player) | Ice patches, blizzards | All weapons | None |
+   | 7 | Desert | 90 | 6 (10, 12, 15, 18, 20, 15) | Sand burrowers | Sandstorms, quicksand | All weapons | None |
+   | 8 | Underwater | 110 | 6 (15, 15, 20, 20, 20, 20) | Aquatic zombies | Oxygen timer, water currents | All weapons | None |
+   | 9 | Space Station | 130 | 7 (15, 15, 20, 20, 20, 20, 20) | Zero-G zombies | Low gravity, airlocks | All weapons | None |
+   | 10 | Hell | 150 | 8 (10, 15, 20, 20, 25, 25, 25, 10) | Demon zombies | Fire pits, teleporters | All weapons | Hell Lord (1000 HP) |
+
+   **Zombie Types:**
+   - **Basic Zombie:** Standard speed, 100 HP
+   - **Fast Zombie:** 1.5x speed, 75 HP
+   - **Armored Zombie:** 0.75x speed, 200 HP
+   - **Fire-resistant:** Immune to fire damage, 100 HP
+   - **Ice Zombie:** Slows player on hit, 100 HP
+   - **Sand Burrower:** Can disappear/reappear, 100 HP
+   - **Aquatic Zombie:** Faster in water areas, 125 HP
+   - **Zero-G Zombie:** Floats and attacks from above, 100 HP
+   - **Demon Zombie:** Teleports short distances, 150 HP
+   
+   **Boss Details:**
+   - **Tank Zombie (Level 5):** 500 HP, charges at player, drops heavy armor
+   - **Hell Lord (Level 10):** 1000 HP, three phases, summons minions, fire attacks
+
+7. **Audio System**
    - Level-specific background music
    - Weapon sound effects
    - Zombie sounds
    - Footstep sounds
    - Environmental audio
 
-7. **Main Menu**
+8. **Main Menu**
    - Start Game
    - Settings (Volume, Controls)
    - High Scores
@@ -198,16 +226,18 @@ src/
 ### 6. Technical Requirements
 
 #### Performance Targets
-- 60 FPS on modern browsers
+- 60 FPS on Chrome (latest version)
 - Load time < 5 seconds
 - Memory usage < 500MB
-- Support for Chrome, Firefox, Safari, Edge
+- Chrome-only optimization
 
-#### Browser APIs Required
-- WebGL 2.0
-- Web Audio API
-- Gamepad API (optional)
-- Local Storage (save progress)
+#### Browser Support
+- **Supported Browser:** Chrome only (latest version)
+- **Required APIs:**
+  - WebGL 2.0
+  - Web Audio API
+  - Pointer Lock API (for mouse control)
+  - Local Storage (save progress)
 
 ### 7. Art Direction
 
