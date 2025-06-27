@@ -42,7 +42,8 @@ const initialState = {
     score: 0,
     zombiesKilled: 0,
     waveNumber: 1,
-    level: 1
+    level: 1,
+    time: 0
   },
   playerHealth: 100,
   playerMaxHealth: 100,
@@ -66,7 +67,8 @@ export const useGameStore = create<GameStore>()(
           score: 0,
           zombiesKilled: 0,
           waveNumber: 1,
-          level: 1
+          level: 1,
+          time: 0
         },
         playerHealth: 100,
         playerMaxHealth: 100

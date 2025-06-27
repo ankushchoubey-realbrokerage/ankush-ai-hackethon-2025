@@ -8,8 +8,14 @@ import { Vector3 } from '../../types/game.types';
 export const CityStreetsConfig: Partial<LevelData> = {
   // Environmental atmosphere
   fogDensity: 0.02,
-  ambientSound: 'city-ambience',
+  ambientSound: 'city-ambience'
   
+  // Note: Additional city-specific properties are stored separately
+  // for use by the map generation system
+};
+
+// Additional city-specific configuration
+export const CityStreetsExtended = {
   // Street grid layout with building boundaries
   boundaries: [
     // North buildings

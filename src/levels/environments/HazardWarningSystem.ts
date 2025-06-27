@@ -7,7 +7,7 @@ import { IHazard } from './IHazard';
 export class HazardWarningSystem {
   private scene: THREE.Scene;
   private warnings: Map<string, WarningIndicator> = new Map();
-  private dangerZoneMeshes: Map<string, THREE.Mesh> = new Map();
+  private dangerZoneMeshes: Map<string, THREE.LineSegments> = new Map();
   
   constructor(scene: THREE.Scene) {
     this.scene = scene;

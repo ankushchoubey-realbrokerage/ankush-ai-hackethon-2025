@@ -1,5 +1,6 @@
 import { Entity, DamagableEntity, Vector3 } from '../../types';
 import { BoundingBox } from './LavaHazard';
+import * as THREE from 'three';
 
 // STEP 36: Base hazard interface and types
 
@@ -13,7 +14,7 @@ export interface IHazard {
   active: boolean;
   
   // Lifecycle methods
-  initialize?(): void;
+  initialize?(scene?: THREE.Scene): void;
   update(deltaTime: number): void;
   cleanup(): void;
   

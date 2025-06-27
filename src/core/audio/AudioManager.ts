@@ -7,6 +7,11 @@ interface SoundConfig extends Partial<HowlOptions> {
   src: string[];
   pool?: number;
   spatial?: boolean;
+  refDistance?: number;
+  maxDistance?: number;
+  rolloffFactor?: number;
+  panningModel?: PanningModelType;
+  distanceModel?: DistanceModelType;
 }
 
 interface PlayingSoundInfo {
