@@ -52,6 +52,7 @@ export class GameEngine {
   
   // STEP 31: Level System Architecture
   private levelLoader: LevelLoader;
+  private lastTheme: string = '';
   private isTransitioning: boolean = false;
   private transitionData: LevelTransitionData | null = null;
   
@@ -159,7 +160,7 @@ export class GameEngine {
   }
 
   private init(): void {
-    // Setup scene
+    // Setup scene (theme will be set when level loads)
     this.sceneManager.setupScene();
     
     // Set scene for managers that need it
@@ -268,13 +269,27 @@ export class GameEngine {
         // Load industrial map assets
         this.loadIndustrialMap();
         break;
-      case 'simple-map':
       case 'city-streets':
+        // Disable fog for city level
+        this.fogSystem.disable();
+        // Urban fog effect
+        this.scene.fog = new THREE.Fog(0x7a7a7a, 30, 120);
+        // Clear existing scene decorations
+        this.clearSceneDecorations();
+        // Setup city streets theme
+        this.sceneManager.setupScene('city-streets');
+        break;
+      case 'simple-map':
       default:
         // Disable fog for other levels
         this.fogSystem.disable();
         // Use default scene fog
         this.scene.fog = new THREE.Fog(0x87CEEB, 50, 150);
+        // Reset to default theme if switching from city
+        if (this.lastTheme === 'city-streets') {
+          this.clearSceneDecorations();
+          this.sceneManager.setupScene();
+        }
         break;
     }
   }
@@ -718,6 +733,30 @@ export class GameEngine {
       properties: {
         slowFactor: 0.7,
         slowType: 'ice'
+      }
+    });
+  }
+  
+  private clearSceneDecorations(): void {
+    // Remove all non-essential objects from scene
+    const objectsToRemove: THREE.Object3D[] = [];
+    
+    this.scene.traverse((child) => {
+      // Remove decorative objects and ground planes
+      if (child.userData.decorative || child.userData.groundPlane) {
+        objectsToRemove.push(child);
+      }
+    });
+    
+    objectsToRemove.forEach(obj => {
+      this.scene.remove(obj);
+      if (obj instanceof THREE.Mesh) {
+        obj.geometry.dispose();
+        if (obj.material instanceof THREE.Material) {
+          obj.material.dispose();
+        } else if (Array.isArray(obj.material)) {
+          obj.material.forEach(mat => mat.dispose());
+        }
       }
     });
   }

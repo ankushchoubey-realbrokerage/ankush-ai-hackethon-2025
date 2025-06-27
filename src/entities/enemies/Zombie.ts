@@ -17,8 +17,8 @@ export class Zombie implements IZombie {
     max: { x: 0.4, y: 1.6, z: 0.4 }
   };
   active: boolean = true;
-  health: number = 100;
-  maxHealth: number = 100;
+  health: number = 1;  // Zombies die in one hit
+  maxHealth: number = 1;
   isDead: boolean = false;
   velocity = { x: 0, y: 0, z: 0 };
   speed: number = 2; // Slower than player
@@ -126,15 +126,15 @@ export class Zombie implements IZombie {
   private configureZombieType(): void {
     switch (this.zombieType) {
       case 'fire-resistant':
-        this.maxHealth = 120; // More health
-        this.health = 120;
+        this.maxHealth = 1; // All zombies die in one hit
+        this.health = 1;
         this.speed = 1.8; // Slightly slower
         this.damage = 12; // Slightly more damage
         this.specialAbilities = ['fire_resistance', 'lava_immunity'];
         break;
       case 'basic':
       default:
-        // Default values already set
+        // Default values already set (1 HP)
         break;
     }
   }

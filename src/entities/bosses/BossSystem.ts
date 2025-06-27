@@ -103,13 +103,17 @@ export class BossManager {
   private checkPhaseTransitions(): void {
     if (!this.currentBoss) return;
     
-    const healthPercentage = this.currentBoss.health / this.currentBoss.maxHealth;
+    // With 4 HP boss:
+    // Phase 1: 4 HP
+    // Phase 2: 3-2 HP  
+    // Phase 3: 1 HP
+    const health = this.currentBoss.health;
     let newPhase = 1;
     
-    if (healthPercentage <= 0.33) {
-      newPhase = 3; // Rage mode
-    } else if (healthPercentage <= 0.66) {
-      newPhase = 2; // Add ground slam
+    if (health <= 1) {
+      newPhase = 3; // Rage mode at 1 HP
+    } else if (health <= 3) {
+      newPhase = 2; // Add ground slam at 3 HP or less
     }
     
     if (newPhase !== this.currentBoss.phase) {

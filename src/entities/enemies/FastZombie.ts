@@ -18,8 +18,8 @@ export class FastZombie extends Zombie {
     // Override base zombie properties
     this.subType = 'fast' as any; // Fast zombie subtype
     this.speed = 3; // 1.5x normal zombie speed (2)
-    this.health = 75;
-    this.maxHealth = 75;
+    this.health = 1;  // Dies in one hit
+    this.maxHealth = 1;
     
     // Modify appearance
     this.applyFastZombieAppearance();

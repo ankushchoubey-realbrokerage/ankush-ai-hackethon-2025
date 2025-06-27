@@ -27,9 +27,9 @@ export class CamoZombie extends Zombie {
   constructor(position: Vector3) {
     super(position);
     
-    // Increase health to compensate for stealth advantage
-    this.health = 125;
-    this.maxHealth = 125;
+    // Dies in one hit like all zombies
+    this.health = 1;
+    this.maxHealth = 1;
     
     // Slightly slower movement for balance
     this.speed = 1.8;

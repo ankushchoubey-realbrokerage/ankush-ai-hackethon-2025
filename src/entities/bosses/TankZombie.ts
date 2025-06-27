@@ -35,9 +35,9 @@ export class TankZombie extends Zombie implements IBoss {
   constructor(position: Vector3) {
     super(position);
     
-    // Boss stats
-    this.health = 1000;
-    this.maxHealth = 1000;
+    // Boss stats - dies in 4 hits
+    this.health = 4;
+    this.maxHealth = 4;
     this.speed = 1.5; // Slower than normal zombies
     this.damage = 50; // High damage
     this.attackRange = 3; // Larger attack range
