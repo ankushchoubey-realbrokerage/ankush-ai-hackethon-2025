@@ -13,6 +13,7 @@ import { CollisionDebugger } from '../../utils/CollisionDebugger';
 import { useGameStore } from '../../store/gameStore';
 import { useWeaponStore } from '../../store/weaponStore';
 import { ParticleSystem } from '../../effects/ParticleSystem';
+import { EnvironmentalHazardManager } from '../../levels/environments/EnvironmentalHazardManager';
 
 export class GameEngine {
   private renderer: THREE.WebGLRenderer;
@@ -41,6 +42,9 @@ export class GameEngine {
   
   // STEP 29: Particle System
   private particleSystem: ParticleSystem;
+  
+  // STEP 35: Environmental Hazard Manager
+  private environmentalHazardManager: EnvironmentalHazardManager;
 
   constructor(container: HTMLElement, onGameOver: () => void) {
     this.container = container;
@@ -102,6 +106,9 @@ export class GameEngine {
     // STEP 29: Initialize particle system
     this.particleSystem = new ParticleSystem(this.scene, 1000);
     
+    // STEP 35: Initialize environmental hazard manager
+    this.environmentalHazardManager = new EnvironmentalHazardManager();
+    
     this.init();
   }
 
@@ -115,6 +122,7 @@ export class GameEngine {
     this.zombieManager.setAudioManager(this.audioManager); // STEP 28: Set audio manager
     this.projectileManager.setScene(this.scene);
     this.projectileManager.setPhysicsEngine(this.physicsEngine);
+    this.levelManager.setScene(this.scene); // STEP 35: Set scene for level manager
     
     // Add player to scene
     this.scene.add(this.player.getMesh());
@@ -266,6 +274,13 @@ export class GameEngine {
     // STEP 29: Update particle system
     this.particleSystem.update(deltaTime);
     
+    // STEP 35: Update environmental hazards
+    const damagableEntities = [
+      this.player,
+      ...this.zombieManager.getZombies()
+    ];
+    this.environmentalHazardManager.update(damagableEntities, deltaTime);
+    
     // Update collision debug visualization
     if (this.collisionDebugger.isEnabled()) {
       // Update player debug box
@@ -310,6 +325,19 @@ export class GameEngine {
     }
     
     this.renderer.render(this.scene, this.camera);
+  }
+  
+  // STEP 35: Load a specific level
+  public loadLevel(levelNumber: number): void {
+    this.levelManager.loadLevel(levelNumber);
+    
+    // Initialize hazards for the level
+    const level = this.levelManager.getCurrentLevel();
+    const map = this.levelManager.getCurrentMap();
+    
+    if (level && map && level.environmentalHazards) {
+      this.environmentalHazardManager.initialize(levelNumber, map.getLavaHazards());
+    }
   }
 
   private async initializeAudio(): Promise<void> {

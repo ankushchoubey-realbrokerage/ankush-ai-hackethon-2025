@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Vector3 } from '../../types';
+import { Vector3, ZombieType } from '../../types';
 import { Zombie } from './Zombie';
 import { AudioManager } from '../../core/audio/AudioManager';
 
@@ -31,10 +31,10 @@ export class ZombieManager {
     this.audioManager = audioManager;
   }
 
-  public spawnZombie(position: Vector3): void {
+  public spawnZombie(position: Vector3, zombieType: ZombieType = 'basic'): void {
     if (!this.scene) return;
     
-    const zombie = new Zombie(position);
+    const zombie = new Zombie(position, zombieType);
     this.zombies.set(zombie.id, zombie);
     
     // STEP 28: Pass audio manager to zombie

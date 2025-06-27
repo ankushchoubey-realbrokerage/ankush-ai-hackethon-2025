@@ -1,10 +1,11 @@
 import * as THREE from 'three';
-import { Zombie as IZombie, Vector3 } from '../../types';
+import { Zombie as IZombie, Vector3, ZombieType } from '../../types';
 import { AudioManager } from '../../core/audio/AudioManager';
 
 export class Zombie implements IZombie {
   id: string;
   type: 'zombie' = 'zombie';
+  zombieType: ZombieType;
   subType: 'normal' = 'normal';
   transform = {
     position: { x: 0, y: 0, z: 0 },
@@ -25,6 +26,7 @@ export class Zombie implements IZombie {
   attackRange: number = 1.5;
   attackCooldown: number = 1; // 1 second between attacks
   lastAttackTime: number = 0;
+  specialAbilities?: string[];
   
   private mesh: THREE.Group;
   private healthBarContainer: THREE.Group;
@@ -36,19 +38,24 @@ export class Zombie implements IZombie {
   private groanInterval: number = 3 + Math.random() * 2; // 3-5 seconds
   private hasPlayedDeathSound: boolean = false;
   
-  constructor(position: Vector3) {
+  constructor(position: Vector3, zombieType: ZombieType = 'basic') {
     this.id = `zombie-${Date.now()}-${Math.random()}`;
+    this.zombieType = zombieType;
     this.transform.position = { ...position };
+    
+    // STEP 35: Configure stats based on zombie type
+    this.configureZombieType();
     
     // Create zombie mesh group
     const group = new THREE.Group();
     
-    // Body (dark green cube)
+    // Body (color based on zombie type)
     const bodyGeometry = new THREE.BoxGeometry(0.8, 1, 0.8);
+    const bodyColor = this.zombieType === 'fire-resistant' ? 0x1a0a00 : 0x2d5016; // Charred black vs dark green
     const bodyMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x2d5016, // Dark green
-      metalness: 0.1,
-      roughness: 0.9
+      color: bodyColor,
+      metalness: this.zombieType === 'fire-resistant' ? 0.3 : 0.1,
+      roughness: this.zombieType === 'fire-resistant' ? 0.7 : 0.9
     });
     const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
     body.position.y = 0.5;
@@ -56,12 +63,13 @@ export class Zombie implements IZombie {
     body.receiveShadow = true;
     group.add(body);
     
-    // Head (slightly lighter green)
+    // Head (color based on zombie type)
     const headGeometry = new THREE.BoxGeometry(0.6, 0.6, 0.6);
+    const headColor = this.zombieType === 'fire-resistant' ? 0x2a1505 : 0x3a6b1e; // Dark brown vs lighter green
     const headMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x3a6b1e, // Lighter green
-      metalness: 0.1,
-      roughness: 0.9
+      color: headColor,
+      metalness: this.zombieType === 'fire-resistant' ? 0.2 : 0.1,
+      roughness: this.zombieType === 'fire-resistant' ? 0.8 : 0.9
     });
     const head = new THREE.Mesh(headGeometry, headMaterial);
     head.position.y = 1.3;
@@ -69,12 +77,13 @@ export class Zombie implements IZombie {
     head.receiveShadow = true;
     group.add(head);
     
-    // Eyes (red glowing)
+    // Eyes (color based on zombie type)
     const eyeGeometry = new THREE.BoxGeometry(0.15, 0.1, 0.1);
+    const eyeColor = this.zombieType === 'fire-resistant' ? 0xff6600 : 0xff0000; // Orange vs red
     const eyeMaterial = new THREE.MeshBasicMaterial({ 
-      color: 0xff0000,
-      emissive: 0xff0000,
-      emissiveIntensity: 0.5
+      color: eyeColor,
+      emissive: eyeColor,
+      emissiveIntensity: this.zombieType === 'fire-resistant' ? 0.8 : 0.5
     });
     
     const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
@@ -110,6 +119,23 @@ export class Zombie implements IZombie {
     this.createHealthBar();
   }
   
+  // STEP 35: Configure zombie stats based on type
+  private configureZombieType(): void {
+    switch (this.zombieType) {
+      case 'fire-resistant':
+        this.maxHealth = 120; // More health
+        this.health = 120;
+        this.speed = 1.8; // Slightly slower
+        this.damage = 12; // Slightly more damage
+        this.specialAbilities = ['fire_resistance', 'lava_immunity'];
+        break;
+      case 'basic':
+      default:
+        // Default values already set
+        break;
+    }
+  }
+
   private createHealthBar(): void {
     // Create health bar container
     this.healthBarContainer = new THREE.Group();
@@ -219,10 +245,18 @@ export class Zombie implements IZombie {
     }
   }
   
-  public takeDamage(damage: number): void {
+  public takeDamage(damage: number, damageType: string = 'normal'): void {
     const oldHealth = this.health;
-    this.health -= damage;
-    console.log(`[Zombie.takeDamage] ${this.id}: ${oldHealth} - ${damage} = ${this.health}`);
+    
+    // STEP 35: Apply damage reduction for fire-resistant zombies
+    let finalDamage = damage;
+    if (this.zombieType === 'fire-resistant' && 
+        (damageType === 'fire' || damageType === 'explosion')) {
+      finalDamage = damage * 0.5; // 50% damage reduction
+    }
+    
+    this.health -= finalDamage;
+    console.log(`[Zombie.takeDamage] ${this.id}: ${oldHealth} - ${finalDamage} = ${this.health}`);
     
     if (this.health <= 0) {
       this.health = 0;
