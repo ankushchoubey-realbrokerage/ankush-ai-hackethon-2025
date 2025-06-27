@@ -432,8 +432,17 @@ export class GameEngine {
   }
 
   public start(): void {
+    console.log('[GameEngine] Starting game engine');
     this.isRunning = true;
     this.clock.start(); // Ensure clock is started
+    
+    // Ensure game state is playing
+    const store = useGameStore.getState();
+    if (store.gameState === 'paused') {
+      console.warn('[GameEngine] Game started in paused state, resuming...');
+      store.resumeGame();
+    }
+    
     this.gameLoop();
   }
 
@@ -447,9 +456,12 @@ export class GameEngine {
 
   public setPaused(paused: boolean): void {
     const store = useGameStore.getState();
-    if (paused) {
+    const currentState = store.gameState;
+    
+    // Only allow pause/resume if game is in valid state
+    if (paused && currentState === 'playing') {
       store.pauseGame();
-    } else {
+    } else if (!paused && currentState === 'paused') {
       store.resumeGame();
       this.clock.start();
     }
@@ -486,11 +498,15 @@ export class GameEngine {
     
     // Toggle pause with ESC
     if (input.pauseToggled) {
+      console.log('[GameEngine] Pause toggled via ESC key');
       const store = useGameStore.getState();
       const currentState = store.gameState;
+      console.log('[GameEngine] Current game state:', currentState);
       if (currentState === 'playing') {
+        console.log('[GameEngine] Pausing game');
         store.pauseGame();
       } else if (currentState === 'paused') {
+        console.log('[GameEngine] Resuming game');
         store.resumeGame();
       }
     }

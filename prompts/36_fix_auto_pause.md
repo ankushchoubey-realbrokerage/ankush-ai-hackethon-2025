@@ -1,0 +1,1 @@
+it still auto pauses

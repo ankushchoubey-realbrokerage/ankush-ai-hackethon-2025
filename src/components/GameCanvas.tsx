@@ -16,6 +16,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver, le
   const engineRef = useRef<GameEngine | null>(null);
   const onGameOverRef = useRef(onGameOver);
   const [showDebug, setShowDebug] = useState(false);
+  const [isEngineReady, setIsEngineReady] = useState(false);
   
   // Update ref when callback changes
   useEffect(() => {
@@ -35,6 +36,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver, le
       if (levelId && engineRef.current) {
         setTimeout(() => {
           engineRef.current?.loadLevel(levelId);
+          setIsEngineReady(true);
         }, 100);
       }
     }
@@ -52,11 +54,11 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver, le
   }, []); // Empty dependency array - only run once
 
   useEffect(() => {
-    // Only update pause state after initial mount
-    if (engineRef.current && mountRef.current) {
+    // Only update pause state after engine is ready
+    if (engineRef.current && isEngineReady) {
       engineRef.current.setPaused(isPaused);
     }
-  }, [isPaused]);
+  }, [isPaused, isEngineReady]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
