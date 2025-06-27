@@ -1,0 +1,1 @@
+add sound to each menu when hovered and when clicked. the sound should match theme of the game

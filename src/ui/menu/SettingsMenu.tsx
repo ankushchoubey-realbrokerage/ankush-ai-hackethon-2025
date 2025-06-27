@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import './SettingsMenu.css';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useMenuSounds } from '../../hooks/useMenuSounds';
 
 interface SettingsMenuProps {
   onBack: () => void;
@@ -8,12 +9,14 @@ interface SettingsMenuProps {
 
 export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack }) => {
   const { settings, updateSettings } = useSettings();
+  const { playHover, playClick } = useMenuSounds();
 
   const handleVolumeChange = (type: 'masterVolume' | 'musicVolume' | 'sfxVolume', value: number) => {
     updateSettings({ [type]: value });
   };
 
   const handleQualityChange = (quality: 'low' | 'medium' | 'high') => {
+    playClick();
     updateSettings({ graphicsQuality: quality });
   };
 
@@ -88,18 +91,21 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack }) => {
               <button
                 className={`qualityButton ${settings.graphicsQuality === 'low' ? 'active' : ''}`}
                 onClick={() => handleQualityChange('low')}
+                onMouseEnter={playHover}
               >
                 Low
               </button>
               <button
                 className={`qualityButton ${settings.graphicsQuality === 'medium' ? 'active' : ''}`}
                 onClick={() => handleQualityChange('medium')}
+                onMouseEnter={playHover}
               >
                 Medium
               </button>
               <button
                 className={`qualityButton ${settings.graphicsQuality === 'high' ? 'active' : ''}`}
                 onClick={() => handleQualityChange('high')}
+                onMouseEnter={playHover}
               >
                 High
               </button>
@@ -137,7 +143,11 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack }) => {
       
       <button 
         className="backButton"
-        onClick={onBack}
+        onClick={() => {
+          playClick();
+          onBack();
+        }}
+        onMouseEnter={playHover}
       >
         Back to Menu
       </button>
