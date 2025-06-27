@@ -1,5 +1,53 @@
 # Changelog
 
+## Step 12: Weapon System Foundation - Completed ✅
+
+### Features Added
+1. **Weapon Interface and Classes**
+   - BaseWeapon abstract class with common weapon functionality
+   - Fire rate limiting based on time
+   - Ammo management methods (fire, reload, addAmmo)
+   - Ammo percentage calculation
+   - Optional methods added to Weapon interface
+
+2. **Pistol Implementation**
+   - First weapon implemented as Pistol class
+   - Unlimited ammo configuration
+   - 2 shots per second fire rate
+   - 25 damage per shot
+   - Small spread for slight inaccuracy (0.05)
+   - 20 units/second projectile speed
+
+3. **Player-Weapon Integration**
+   - Player now uses weapon instances instead of hardcoded data
+   - getCurrentWeapon() method for accessing active weapon
+   - switchWeapon() method for weapon switching
+   - Fire method updated to use weapon's fire() method
+   - Console logging for testing fire functionality
+
+4. **HUD Weapon Display**
+   - Created WeaponStore for state management
+   - HUD now displays actual weapon name from player
+   - Shows ammo count or ∞ for unlimited weapons
+   - GameEngine syncs weapon data to store
+   - Real-time updates when weapon changes
+
+### Technical Implementation
+- Abstract BaseWeapon class for code reuse
+- Weapon store with Zustand for state management
+- Proper TypeScript interfaces with optional methods
+- Fire rate limiting using timestamp tracking
+- Separation of weapon logic from player logic
+
+### Weapon System Features
+- Fire rate control
+- Ammo management
+- Weapon switching support
+- Extensible design for adding new weapons
+- Store integration for UI updates
+
+---
+
 ## Step 11: Basic UI - HUD - Completed ✅
 
 ### Features Added

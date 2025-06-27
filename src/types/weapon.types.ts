@@ -10,6 +10,13 @@ export interface Weapon {
   projectileSpeed: number;
   spread?: number;
   areaOfEffect?: number;
+  
+  // Methods
+  fire?: () => boolean;
+  reload?: () => void;
+  canFire?: () => boolean;
+  addAmmo?: (amount: number) => void;
+  getAmmoPercentage?: () => number;
 }
 
 export type WeaponType = 'pistol' | 'machinegun' | 'shotgun' | 'rocketlauncher';

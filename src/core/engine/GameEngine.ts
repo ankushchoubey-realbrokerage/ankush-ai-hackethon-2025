@@ -11,6 +11,7 @@ import { GameStats, Entity } from '../../types';
 import { PerformanceMonitor } from '../../utils/PerformanceMonitor';
 import { CollisionDebugger } from '../../utils/CollisionDebugger';
 import { useGameStore } from '../../store/gameStore';
+import { useWeaponStore } from '../../store/weaponStore';
 
 export class GameEngine {
   private renderer: THREE.WebGLRenderer;
@@ -238,6 +239,15 @@ export class GameEngine {
     const store = useGameStore.getState();
     if (store.playerHealth !== this.player.health || store.playerMaxHealth !== this.player.maxHealth) {
       store.setPlayerHealth(this.player.health, this.player.maxHealth);
+    }
+    
+    // Update weapon info in store
+    const weaponStore = useWeaponStore.getState();
+    const currentWeapon = this.player.getCurrentWeapon();
+    if (weaponStore.currentWeapon?.id !== currentWeapon?.id) {
+      weaponStore.setCurrentWeapon(currentWeapon);
+      weaponStore.setWeapons(this.player.weapons);
+      weaponStore.setCurrentWeaponIndex(this.player.currentWeaponIndex);
     }
     
     // Check game over condition

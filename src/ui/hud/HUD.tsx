@@ -1,12 +1,14 @@
 import React from 'react';
 import { useGameStore } from '../../store/gameStore';
+import { useCurrentWeapon } from '../../store/weaponStore';
 
 export const HUD: React.FC = () => {
   const { gameStats, playerHealth, playerMaxHealth } = useGameStore();
+  const currentWeapon = useCurrentWeapon();
   
-  // TODO: Connect weapon info when weapon system is implemented
-  const currentWeapon = 'Pistol';
-  const ammo = -1; // -1 for unlimited
+  const weaponName = currentWeapon?.name || 'None';
+  const ammo = currentWeapon?.ammo || 0;
+  const isUnlimited = currentWeapon?.isUnlimited || false;
   
   // Calculate health bar color based on health percentage
   const healthPercentage = (playerHealth / playerMaxHealth) * 100;
@@ -69,7 +71,7 @@ export const HUD: React.FC = () => {
         fontWeight: 'bold',
         textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
       }}>
-        <span style={{ color: '#FFC107' }}>⚔️</span> {currentWeapon} {ammo >= 0 ? `(${ammo})` : '(∞)'}
+        <span style={{ color: '#FFC107' }}>⚔️</span> {weaponName} {isUnlimited ? '(∞)' : `(${ammo})`}
       </div>
 
       {/* Score and Stats */}

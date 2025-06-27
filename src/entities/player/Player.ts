@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Player as IPlayer, PlayerInput, Vector3 } from '../../types';
 import { Weapon } from '../../types';
 import { MouseUtils } from '../../utils/MouseUtils';
+import { Pistol } from '../../weapons';
 
 export class Player implements IPlayer {
   id: string = 'player';
@@ -94,17 +95,7 @@ export class Player implements IPlayer {
     this.mesh.position.set(this.transform.position.x, this.transform.position.y, this.transform.position.z);
 
     // Initialize with pistol
-    this.weapons.push({
-      id: 'pistol',
-      name: 'Pistol',
-      type: 'pistol',
-      damage: 25,
-      fireRate: 2,
-      ammo: -1,
-      maxAmmo: -1,
-      isUnlimited: true,
-      projectileSpeed: 20
-    });
+    this.weapons.push(new Pistol());
     
     // Update bounding box to match new size
     this.updateBoundingBox();
@@ -229,10 +220,14 @@ export class Player implements IPlayer {
   }
 
   private fire(): void {
-    // This will be implemented when we create the projectile system
-    const currentWeapon = this.weapons[this.currentWeaponIndex];
-    if (currentWeapon) {
-      // Create projectile
+    const currentWeapon = this.getCurrentWeapon();
+    if (currentWeapon && currentWeapon.fire) {
+      // Fire the weapon
+      const fired = currentWeapon.fire();
+      if (fired) {
+        // TODO: Create projectile when projectile system is implemented
+        console.log(`Fired ${currentWeapon.name}! Ammo: ${currentWeapon.isUnlimited ? '∞' : currentWeapon.ammo}/${currentWeapon.maxAmmo}`);
+      }
     }
   }
 
@@ -358,5 +353,15 @@ export class Player implements IPlayer {
       y: 0,
       z: Math.cos(angle)
     };
+  }
+
+  public getCurrentWeapon(): Weapon | null {
+    return this.weapons[this.currentWeaponIndex] || null;
+  }
+
+  public switchWeapon(index: number): void {
+    if (index >= 0 && index < this.weapons.length) {
+      this.currentWeaponIndex = index;
+    }
   }
 }
