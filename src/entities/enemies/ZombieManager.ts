@@ -33,7 +33,12 @@ export class ZombieManager {
   }
 
   public spawnZombie(position: Vector3, zombieType: ZombieType | 'normal' | 'fast' = 'basic'): void {
-    if (!this.scene) return;
+    if (!this.scene) {
+      console.error('[ZombieManager.spawnZombie] No scene set!');
+      return;
+    }
+    
+    console.log(`[ZombieManager.spawnZombie] Spawning ${zombieType} zombie at position:`, position);
     
     // Create zombie based on type
     let zombie: Zombie;
@@ -53,7 +58,12 @@ export class ZombieManager {
     }
     
     // Add to scene
-    this.scene.add(zombie.getMesh());
+    const mesh = zombie.getMesh();
+    console.log(`[ZombieManager.spawnZombie] Adding zombie mesh to scene. Mesh position:`, mesh.position);
+    this.scene.add(mesh);
+    
+    // Verify mesh was added
+    console.log(`[ZombieManager.spawnZombie] Zombie ${zombie.id} added to scene. Total zombies: ${this.zombies.size}`);
     
     // Register with physics engine
     if (this.physicsEngine) {

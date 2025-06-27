@@ -65,10 +65,12 @@ export class LevelManager {
       return;
     }
     
-    console.log(`Spawning wave with ${wave.zombieCount} zombies`);
+    console.log(`[LevelManager.spawnWave] Spawning wave with ${wave.zombieCount} zombies`);
+    console.log(`[LevelManager.spawnWave] Zombie types:`, wave.zombieTypes);
     this.remainingZombiesInWave = wave.zombieCount;
     
     const spawnPoints = this.currentLevel.spawnPoints;
+    console.log(`[LevelManager.spawnWave] Available spawn points:`, spawnPoints);
     
     // Spawn zombies based on type distribution
     for (let i = 0; i < wave.zombieCount; i++) {

@@ -213,8 +213,14 @@ export class GameEngine {
       this.scene.add(marker);
     });
     
-    // Load first level
+    // Load first level and start first wave
     this.levelManager.loadLevel(1);
+    
+    // Start first wave after a short delay
+    setTimeout(() => {
+      console.log('Starting first wave of level 1...');
+      this.levelManager.startNextWave();
+    }, 2000); // 2 second delay before first wave
   }
 
   public start(): void {

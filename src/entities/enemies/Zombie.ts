@@ -114,6 +114,10 @@ export class Zombie implements IZombie {
     this.mesh = group;
     this.mesh.position.set(position.x, position.y, position.z);
     
+    // Log zombie creation
+    console.log(`[Zombie] Created zombie ${this.id} at position:`, this.mesh.position);
+    console.log(`[Zombie] Mesh children count:`, this.mesh.children.length);
+    
     // Create health bar
     this.createHealthBar();
   }

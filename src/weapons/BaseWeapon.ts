@@ -13,7 +13,7 @@ export abstract class BaseWeapon implements Weapon {
   spread?: number;
   areaOfEffect?: number;
   
-  private lastFireTime: number = 0;
+  lastFireTime: number = 0;
 
   constructor(config: Weapon) {
     this.id = config.id;
