@@ -37,6 +37,18 @@ export class AudioManager {
     machine_gun_fire: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA'
   };
 
+  // STEP 38: Forest ambient sound placeholder data
+  private static readonly FOREST_SOUNDS = {
+    // Forest ambience - birds, wind, rustling
+    forest_ambience: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // Distant thunder/creepy ambience
+    forest_creepy: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // Footstep on leaves
+    footstep_leaves: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // Thunder/lightning strike
+    thunder_strike: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA'
+  };
+
   // STEP 28: Zombie sound placeholder data (lower frequency for groans)
   private static readonly ZOMBIE_SOUNDS = {
     // Zombie groan variations
@@ -497,5 +509,74 @@ export class AudioManager {
     } catch (error) {
       console.error('Failed to initialize zombie sounds:', error);
     }
+  }
+
+  /**
+   * STEP 38: Initialize forest ambient sounds
+   */
+  public async initializeForestSounds(): Promise<void> {
+    try {
+      // Load forest ambience (looping background)
+      await this.loadSound('forest_ambience', {
+        src: [AudioManager.FOREST_SOUNDS.forest_ambience],
+        volume: 0.2,
+        loop: true,
+        preload: true
+      }, 'ambient');
+
+      // Load creepy forest sounds
+      await this.loadSound('forest_creepy', {
+        src: [AudioManager.FOREST_SOUNDS.forest_creepy],
+        volume: 0.15,
+        loop: true,
+        preload: true
+      }, 'ambient');
+
+      // Load footstep sounds
+      await this.loadSound('footstep_leaves', {
+        src: [AudioManager.FOREST_SOUNDS.footstep_leaves],
+        volume: 0.3,
+        pool: 5,
+        preload: true
+      }, 'ambient');
+
+      // Load thunder sound for lightning flashes
+      await this.loadSound('thunder_strike', {
+        src: [AudioManager.FOREST_SOUNDS.thunder_strike],
+        volume: 0.6,
+        pool: 2,
+        preload: true
+      }, 'ambient');
+
+      console.log('Forest sounds initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize forest sounds:', error);
+    }
+  }
+
+  /**
+   * Play forest ambience
+   */
+  public startForestAmbience(): void {
+    // Play main forest ambience
+    this.playSound('forest_ambience', 0.2);
+    
+    // Play creepy undertone
+    this.playSound('forest_creepy', 0.1);
+  }
+
+  /**
+   * Stop forest ambience
+   */
+  public stopForestAmbience(): void {
+    this.stopSound('forest_ambience');
+    this.stopSound('forest_creepy');
+  }
+
+  /**
+   * Play thunder sound for lightning effect
+   */
+  public playThunder(): void {
+    this.playSound('thunder_strike', 0.6);
   }
 }

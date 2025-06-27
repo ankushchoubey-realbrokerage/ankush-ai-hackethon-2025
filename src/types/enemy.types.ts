@@ -13,6 +13,7 @@ export type ZombieType =
   | 'basic'
   | 'fast'
   | 'armored'
+  | 'camouflaged'
   | 'fire-resistant'
   | 'ice'
   | 'sand-burrower'

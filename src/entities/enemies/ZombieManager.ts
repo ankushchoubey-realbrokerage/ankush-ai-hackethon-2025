@@ -1,7 +1,9 @@
 import * as THREE from 'three';
-import { Vector3 } from '../../types';
+import { Vector3, ZombieType } from '../../types';
 import { Zombie } from './Zombie';
+import { CamoZombie } from './CamoZombie';
 import { AudioManager } from '../../core/audio/AudioManager';
+import { FogSystem } from '../../effects/FogSystem';
 
 export class ZombieManager {
   private zombies: Map<string, Zombie> = new Map();
@@ -9,6 +11,7 @@ export class ZombieManager {
   private physicsEngine: any = null;
   private audioManager: AudioManager | null = null; // STEP 28: Audio manager reference
   private particleSystem: any = null;
+  private fogSystem: FogSystem | null = null;
 
   public setScene(scene: THREE.Scene): void {
     this.scene = scene;
@@ -31,10 +34,29 @@ export class ZombieManager {
     this.audioManager = audioManager;
   }
 
-  public spawnZombie(position: Vector3): void {
+  public setFogSystem(fogSystem: FogSystem): void {
+    this.fogSystem = fogSystem;
+  }
+
+  public spawnZombie(position: Vector3, type: ZombieType = 'basic'): void {
     if (!this.scene) return;
     
-    const zombie = new Zombie(position);
+    let zombie: Zombie;
+    
+    // Create appropriate zombie type
+    switch (type) {
+      case 'camouflaged':
+        zombie = new CamoZombie(position);
+        if (this.fogSystem && zombie instanceof CamoZombie) {
+          zombie.setFogSystem(this.fogSystem);
+        }
+        break;
+      // Add other zombie types here in future steps
+      default:
+        zombie = new Zombie(position);
+        break;
+    }
+    
     this.zombies.set(zombie.id, zombie);
     
     // STEP 28: Pass audio manager to zombie

@@ -13,6 +13,7 @@ import { CollisionDebugger } from '../../utils/CollisionDebugger';
 import { useGameStore } from '../../store/gameStore';
 import { useWeaponStore } from '../../store/weaponStore';
 import { ParticleSystem } from '../../effects/ParticleSystem';
+import { FogSystem } from '../../effects/FogSystem';
 
 export class GameEngine {
   private renderer: THREE.WebGLRenderer;
@@ -41,6 +42,8 @@ export class GameEngine {
   
   // STEP 29: Particle System
   private particleSystem: ParticleSystem;
+  // STEP 38: Fog System
+  private fogSystem: FogSystem;
 
   constructor(container: HTMLElement, onGameOver: () => void) {
     this.container = container;
@@ -102,6 +105,10 @@ export class GameEngine {
     // STEP 29: Initialize particle system
     this.particleSystem = new ParticleSystem(this.scene, 1000);
     
+    // STEP 38: Initialize fog system
+    this.fogSystem = new FogSystem(this.scene);
+    this.fogSystem.setAudioManager(this.audioManager);
+    
     this.init();
   }
 
@@ -113,6 +120,7 @@ export class GameEngine {
     this.zombieManager.setScene(this.scene);
     this.zombieManager.setPhysicsEngine(this.physicsEngine);
     this.zombieManager.setAudioManager(this.audioManager); // STEP 28: Set audio manager
+    this.zombieManager.setFogSystem(this.fogSystem); // STEP 38: Set fog system
     this.projectileManager.setScene(this.scene);
     this.projectileManager.setPhysicsEngine(this.physicsEngine);
     
@@ -144,11 +152,12 @@ export class GameEngine {
     this.createTestObstacles();
     
     // STEP 16: Spawn test zombies for movement testing
-    this.zombieManager.spawnZombie({ x: 10, y: 0, z: 10 });
-    this.zombieManager.spawnZombie({ x: -10, y: 0, z: 10 });
-    this.zombieManager.spawnZombie({ x: 10, y: 0, z: -10 });
-    this.zombieManager.spawnZombie({ x: -10, y: 0, z: -10 });
-    this.zombieManager.spawnZombie({ x: 0, y: 0, z: 15 });
+    // For forest level, spawn some camouflaged zombies
+    this.zombieManager.spawnZombie({ x: 10, y: 0, z: 10 }, 'camouflaged');
+    this.zombieManager.spawnZombie({ x: -10, y: 0, z: 10 }, 'camouflaged');
+    this.zombieManager.spawnZombie({ x: 10, y: 0, z: -10 }, 'basic');
+    this.zombieManager.spawnZombie({ x: -10, y: 0, z: -10 }, 'basic');
+    this.zombieManager.spawnZombie({ x: 0, y: 0, z: 15 }, 'camouflaged');
     
     // Add reference markers for testing (smaller, less intrusive)
     const markerGeometry = new THREE.SphereGeometry(0.3, 16, 16);
@@ -175,8 +184,72 @@ export class GameEngine {
       this.scene.add(marker);
     });
     
-    // Load first level
-    this.levelManager.loadLevel(1);
+    // Load first level (changed to forest for testing)
+    this.levelManager.loadLevel(4); // Forest level for testing
+    this.configureLevelEnvironment();
+  }
+  
+  private configureLevelEnvironment(): void {
+    const currentLevel = this.levelManager.getCurrentLevel();
+    if (!currentLevel) return;
+    
+    // Stop any existing ambient sounds
+    this.audioManager.stopCategory('ambient');
+    
+    // Configure fog and audio based on level theme
+    switch (currentLevel.theme) {
+      case 'forest':
+        // Enable dense fog for forest level
+        this.fogSystem.enable(0.025, '#3a4a3a');
+        // Also update scene fog
+        this.scene.fog = new THREE.FogExp2(0x3a4a3a, 0.025);
+        // Start forest ambience
+        this.audioManager.startForestAmbience();
+        // Load forest map assets
+        this.loadForestMap();
+        break;
+      case 'simple-map':
+      case 'city-streets':
+      default:
+        // Disable fog for other levels
+        this.fogSystem.disable();
+        // Use default scene fog
+        this.scene.fog = new THREE.Fog(0x87CEEB, 50, 150);
+        break;
+    }
+  }
+  
+  private loadForestMap(): void {
+    // Import and load the forest map
+    import('../../levels/maps/ForestMap').then(({ ForestMap }) => {
+      const forestMap = new ForestMap(this.scene);
+      forestMap.load();
+      
+      // Register obstacles with physics engine
+      const obstacles = forestMap.getObstacles();
+      obstacles.forEach(obstacle => {
+        // Create a simple entity wrapper for physics
+        const obstacleEntity = {
+          id: `forest-obstacle-${Math.random()}`,
+          type: 'obstacle' as const,
+          transform: {
+            position: {
+              x: obstacle.position.x,
+              y: obstacle.position.y,
+              z: obstacle.position.z
+            },
+            rotation: { x: 0, y: 0, z: 0 },
+            scale: { x: 1, y: 1, z: 1 }
+          },
+          boundingBox: {
+            min: { x: -1, y: 0, z: -1 },
+            max: { x: 1, y: 3, z: 1 }
+          },
+          active: true
+        };
+        this.physicsEngine.addEntity(obstacleEntity);
+      });
+    });
   }
 
   public start(): void {
@@ -266,6 +339,10 @@ export class GameEngine {
     // STEP 29: Update particle system
     this.particleSystem.update(deltaTime);
     
+    // STEP 38: Update fog system (for lightning effects)
+    const ambientLight = this.scene.children.find(child => child instanceof THREE.AmbientLight) as THREE.AmbientLight;
+    this.fogSystem.update(deltaTime, ambientLight);
+    
     // Update collision debug visualization
     if (this.collisionDebugger.isEnabled()) {
       // Update player debug box
@@ -337,6 +414,9 @@ export class GameEngine {
       
       // STEP 28: Initialize zombie sounds
       await this.audioManager.initializeZombieSounds();
+      
+      // STEP 38: Initialize forest sounds
+      await this.audioManager.initializeForestSounds();
       
     } catch (error) {
       console.error('Failed to initialize audio:', error);
