@@ -228,11 +228,7 @@ export class GameEngine {
     this.projectileManager.update(deltaTime);
     
     // Check projectile collisions
-    if (this.checkProjectileCollisions) {
-      this.checkProjectileCollisions();
-    } else {
-      console.error('checkProjectileCollisions method not found!');
-    }
+    this.checkProjectileCollisions();
     
     // Update physics
     this.physicsEngine.update(deltaTime);
