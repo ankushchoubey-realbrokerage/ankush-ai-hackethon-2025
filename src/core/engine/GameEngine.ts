@@ -47,6 +47,8 @@ export class GameEngine {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(this.renderer.domElement);
     
     this.scene = new THREE.Scene();
@@ -82,8 +84,35 @@ export class GameEngine {
     // Setup scene
     this.sceneManager.setupScene();
     
+    // Set scene for managers that need it
+    this.zombieManager.setScene(this.scene);
+    this.projectileManager.setScene(this.scene);
+    
     // Add player to scene
     this.scene.add(this.player.getMesh());
+    
+    // Add test cubes for camera verification
+    const testGeometry = new THREE.BoxGeometry(2, 2, 2);
+    const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00];
+    const positions = [
+      { x: 5, y: 1, z: 5 },
+      { x: -5, y: 1, z: 5 },
+      { x: 5, y: 1, z: -5 },
+      { x: -5, y: 1, z: -5 }
+    ];
+    
+    positions.forEach((pos, index) => {
+      const testMaterial = new THREE.MeshStandardMaterial({ 
+        color: colors[index],
+        metalness: 0.3,
+        roughness: 0.7
+      });
+      const testCube = new THREE.Mesh(testGeometry, testMaterial);
+      testCube.position.set(pos.x, pos.y, pos.z);
+      testCube.castShadow = true;
+      testCube.receiveShadow = true;
+      this.scene.add(testCube);
+    });
     
     // Load first level
     this.levelManager.loadLevel(1);
@@ -138,7 +167,7 @@ export class GameEngine {
     this.physicsEngine.update(deltaTime);
     
     // Check game over condition
-    if (this.player.isDead()) {
+    if (this.player.isPlayerDead()) {
       this.onGameOver();
     }
   }

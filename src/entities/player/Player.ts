@@ -128,4 +128,8 @@ export class Player implements IPlayer {
   public getPosition(): Vector3 {
     return this.transform.position;
   }
+
+  public isPlayerDead(): boolean {
+    return this.isDead;
+  }
 }
