@@ -3,10 +3,12 @@ import { Player as IPlayer, PlayerInput, Vector3 } from '../../types';
 import { Weapon } from '../../types';
 import { MouseUtils } from '../../utils/MouseUtils';
 import { Pistol } from '../../weapons';
+import { AudioManager } from '../../core/audio/AudioManager';
 
 export class Player implements IPlayer {
   private projectileManager: any = null; // Will be set by GameEngine
   private instanceId: number = Date.now(); // Debug: track instance
+  private audioManager: AudioManager | null = null; // STEP 27: Audio manager reference
   id: string = 'player';
   type: 'player' = 'player';
   transform = {
@@ -271,6 +273,16 @@ export class Player implements IPlayer {
           currentWeapon.projectileSpeed,
           this.id
         );
+        
+        // STEP 27: Play weapon sound
+        if (this.audioManager) {
+          // Determine weapon type and play appropriate sound
+          if (currentWeapon.id === 'pistol') {
+            this.audioManager.playWeaponSound('pistol', 0.5);
+          } else if (currentWeapon.id === 'machine_gun') {
+            this.audioManager.playWeaponSound('machine_gun', 0.4);
+          }
+        }
       }
     }
   }
@@ -438,5 +450,10 @@ export class Player implements IPlayer {
   
   public setProjectileManager(projectileManager: any): void {
     this.projectileManager = projectileManager;
+  }
+
+  // STEP 27: Set audio manager reference
+  public setAudioManager(audioManager: AudioManager): void {
+    this.audioManager = audioManager;
   }
 }

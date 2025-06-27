@@ -105,6 +105,7 @@ export class GameEngine {
     // Set scene for managers that need it
     this.zombieManager.setScene(this.scene);
     this.zombieManager.setPhysicsEngine(this.physicsEngine);
+    this.zombieManager.setAudioManager(this.audioManager); // STEP 28: Set audio manager
     this.projectileManager.setScene(this.scene);
     this.projectileManager.setPhysicsEngine(this.physicsEngine);
     
@@ -116,6 +117,12 @@ export class GameEngine {
     
     // Set projectile manager reference for player
     this.player.setProjectileManager(this.projectileManager);
+    
+    // STEP 27: Set audio manager reference for player
+    this.player.setAudioManager(this.audioManager);
+    
+    // STEP 26: Initialize audio system with test sound
+    this.initializeAudio();
     
     // Register player with physics engine
     this.physicsEngine.addEntity(this.player);
@@ -226,6 +233,9 @@ export class GameEngine {
     // Update camera to follow player
     this.sceneManager.updateCameraPosition(this.player.getPosition());
     
+    // STEP 28: Update 3D audio listener position to match player
+    this.audioManager.updateListenerPosition(this.player.getPosition(), this.player.getAimDirection());
+    
     // Update zombies
     this.zombieManager.update(deltaTime, this.player.getPosition());
     
@@ -285,6 +295,37 @@ export class GameEngine {
     }
     
     this.renderer.render(this.scene, this.camera);
+  }
+
+  private async initializeAudio(): Promise<void> {
+    try {
+      // STEP 26: Load test sound with base64 encoded beep
+      // This is a simple sine wave beep sound encoded as base64
+      const testBeepBase64 = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
+      
+      await this.audioManager.loadSound('test-beep', {
+        src: [testBeepBase64],
+        volume: 0.3,
+        preload: true
+      }, 'ui');
+      
+      console.log('Audio system initialized successfully');
+      
+      // Play test sound after a short delay to ensure user interaction
+      setTimeout(() => {
+        console.log('Playing test beep sound...');
+        this.audioManager.playSound('test-beep', 0.5);
+      }, 1000);
+      
+      // STEP 27: Initialize weapon sounds
+      await this.audioManager.initializeWeaponSounds();
+      
+      // STEP 28: Initialize zombie sounds
+      await this.audioManager.initializeZombieSounds();
+      
+    } catch (error) {
+      console.error('Failed to initialize audio:', error);
+    }
   }
 
   public handleResize(): void {
