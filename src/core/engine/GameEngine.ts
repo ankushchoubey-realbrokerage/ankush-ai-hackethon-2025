@@ -123,8 +123,12 @@ export class GameEngine {
     // Add test obstacles for collision testing
     this.createTestObstacles();
     
-    // Spawn a test zombie
+    // STEP 16: Spawn test zombies for movement testing
     this.zombieManager.spawnZombie({ x: 10, y: 0, z: 10 });
+    this.zombieManager.spawnZombie({ x: -10, y: 0, z: 10 });
+    this.zombieManager.spawnZombie({ x: 10, y: 0, z: -10 });
+    this.zombieManager.spawnZombie({ x: -10, y: 0, z: -10 });
+    this.zombieManager.spawnZombie({ x: 0, y: 0, z: 15 });
     
     // Add reference markers for testing (smaller, less intrusive)
     const markerGeometry = new THREE.SphereGeometry(0.3, 16, 16);

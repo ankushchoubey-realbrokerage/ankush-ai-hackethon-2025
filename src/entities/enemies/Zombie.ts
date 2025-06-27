@@ -101,15 +101,26 @@ export class Zombie implements IZombie {
   public update(deltaTime: number, playerPosition: Vector3): void {
     if (this.isDead) return;
     
+    // STEP 16: Zombie AI Movement
     // Simple AI: move toward player
     const dx = playerPosition.x - this.transform.position.x;
     const dz = playerPosition.z - this.transform.position.z;
     const distance = Math.sqrt(dx * dx + dz * dz);
     
-    if (distance > 0.1) {
+    if (distance > this.attackRange) { // Stop when in attack range
       // Normalize direction
-      const dirX = dx / distance;
-      const dirZ = dz / distance;
+      let dirX = dx / distance;
+      let dirZ = dz / distance;
+      
+      // Add slight randomization to prevent stacking (±10% variation)
+      const randomOffset = 0.1;
+      dirX += (Math.random() - 0.5) * randomOffset;
+      dirZ += (Math.random() - 0.5) * randomOffset;
+      
+      // Re-normalize after randomization
+      const length = Math.sqrt(dirX * dirX + dirZ * dirZ);
+      dirX /= length;
+      dirZ /= length;
       
       // Update velocity
       this.velocity.x = dirX * this.speed;
@@ -119,7 +130,7 @@ export class Zombie implements IZombie {
       this.transform.position.x += this.velocity.x * deltaTime;
       this.transform.position.z += this.velocity.z * deltaTime;
       
-      // Update rotation to face player
+      // Update rotation to face player (use original direction, not randomized)
       this.transform.rotation.y = Math.atan2(dx, dz);
       
       // Update mesh
@@ -129,6 +140,10 @@ export class Zombie implements IZombie {
         this.transform.position.z
       );
       this.mesh.rotation.y = this.transform.rotation.y;
+    } else {
+      // Stop moving when in attack range
+      this.velocity.x = 0;
+      this.velocity.z = 0;
     }
   }
   
