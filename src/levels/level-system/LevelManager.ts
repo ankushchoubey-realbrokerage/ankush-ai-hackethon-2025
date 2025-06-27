@@ -2,6 +2,8 @@ import { Wave, Vector3 } from '../../types';
 import { LevelData } from '../../types/level.types';
 import { levelConfigs } from '../maps/levelConfigs';
 import { ZombieManager } from '../../entities/enemies/ZombieManager';
+import { VolcanoMap } from '../maps/VolcanoMap';
+import * as THREE from 'three';
 
 export class LevelManager {
   private currentLevel: LevelData | null = null;
@@ -9,6 +11,12 @@ export class LevelManager {
   private isWaveActive: boolean = false;
   private zombieManager: ZombieManager | null = null;
   private remainingZombiesInWave: number = 0;
+  private currentMap: VolcanoMap | null = null;
+  private scene: THREE.Scene | null = null;
+
+  public setScene(scene: THREE.Scene): void {
+    this.scene = scene;
+  }
 
   public loadLevel(levelNumber: number): void {
     const level = levelConfigs.get(levelNumber);
@@ -16,6 +24,19 @@ export class LevelManager {
       this.currentLevel = level;
       this.currentWaveIndex = 0;
       this.isWaveActive = false;
+      
+      // STEP 35: Clean up previous map if any
+      if (this.currentMap) {
+        this.currentMap.cleanup();
+        this.currentMap = null;
+      }
+      
+      // STEP 35: Load volcano map for level 3
+      if (levelNumber === 3 && this.scene) {
+        this.currentMap = new VolcanoMap(this.scene);
+        this.currentMap.initialize();
+      }
+      
       console.log(`Loaded level ${levelNumber}: ${level.name}`);
     } else {
       console.error(`Level ${levelNumber} not found`);
@@ -111,5 +132,10 @@ export class LevelManager {
   
   public setCurrentLevel(levelNumber: number): void {
     this.loadLevel(levelNumber);
+  }
+  
+  // STEP 35: Get current map
+  public getCurrentMap(): VolcanoMap | null {
+    return this.currentMap;
   }
 }

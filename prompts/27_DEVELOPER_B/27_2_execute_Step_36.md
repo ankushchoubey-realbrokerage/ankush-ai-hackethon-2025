@@ -76,3 +76,5 @@ Update `EnvironmentalHazardManager.ts`:
 - At least 4 different hazard types
 - Hazard effects and feedback system
 - Demo level showcasing all hazard types
+
+Implement all tasks listed here. Don't just analyze. Don't do npm run test or npm lint or run dev.

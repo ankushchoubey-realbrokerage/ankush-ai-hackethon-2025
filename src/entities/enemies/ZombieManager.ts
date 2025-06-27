@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Vector3 } from '../../types';
+import { Vector3, ZombieType } from '../../types';
 import { Zombie } from './Zombie';
 import { FastZombie } from './FastZombie';
 import { AudioManager } from '../../core/audio/AudioManager';
@@ -32,14 +32,19 @@ export class ZombieManager {
     this.audioManager = audioManager;
   }
 
-  public spawnZombie(position: Vector3, type: 'normal' | 'fast' = 'normal'): void {
+  public spawnZombie(position: Vector3, zombieType: ZombieType | 'normal' | 'fast' = 'basic'): void {
     if (!this.scene) return;
     
     // Create zombie based on type
-    const zombie = type === 'fast' 
-      ? new FastZombie(position)
-      : new Zombie(position);
-      
+    let zombie: Zombie;
+    if (zombieType === 'fast') {
+      zombie = new FastZombie(position);
+    } else if (zombieType === 'normal') {
+      // Map 'normal' to 'basic' for compatibility
+      zombie = new Zombie(position, 'basic');
+    } else {
+      zombie = new Zombie(position, zombieType as ZombieType);
+    }
     this.zombies.set(zombie.id, zombie);
     
     // STEP 28: Pass audio manager to zombie

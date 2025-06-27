@@ -34,7 +34,11 @@ export class AudioManager {
     // Pistol sound: short, punchy click
     pistol_fire: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
     // Machine gun sound: rapid, continuous
-    machine_gun_fire: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA'
+    machine_gun_fire: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // STEP 37: Rocket launcher sound: deep boom
+    rocket_launch: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // Explosion sound: loud bang
+    explosion: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA'
   };
 
   // STEP 28: Zombie sound placeholder data (lower frequency for groans)
@@ -347,6 +351,27 @@ export class AudioManager {
         volume: 0.3,
         pool: 10, // Larger pool for automatic fire
         preload: true
+      }, 'weapon');
+      
+      // STEP 37: Load rocket launcher sounds
+      await this.loadSound('rocket_launch', {
+        src: [AudioManager.WEAPON_SOUNDS.rocket_launch],
+        volume: 0.7,
+        pool: 3, // Small pool for slower fire rate
+        preload: true
+      }, 'weapon');
+      
+      await this.loadSound('explosion', {
+        src: [AudioManager.WEAPON_SOUNDS.explosion],
+        volume: 0.8,
+        pool: 5, // Multiple explosions possible
+        preload: true,
+        spatial: true,
+        refDistance: AudioManager.SPATIAL_CONFIG.refDistance * 2,
+        maxDistance: AudioManager.SPATIAL_CONFIG.maxDistance * 2,
+        rolloffFactor: AudioManager.SPATIAL_CONFIG.rolloffFactor * 0.7,
+        panningModel: AudioManager.SPATIAL_CONFIG.panningModel,
+        distanceModel: AudioManager.SPATIAL_CONFIG.distanceModel
       }, 'weapon');
 
       console.log('Weapon sounds initialized successfully');

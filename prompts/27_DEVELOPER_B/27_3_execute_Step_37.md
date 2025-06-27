@@ -87,3 +87,5 @@ export class Explosion {
 - Area damage implementation
 - Visual and audio effects
 - Balanced gameplay demonstration
+
+Implement all tasks listed here. Don't just analyze. Don't do npm run test or npm lint or run dev.

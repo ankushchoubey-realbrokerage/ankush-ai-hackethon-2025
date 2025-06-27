@@ -82,3 +82,5 @@ Create `src/levels/environments/EnvironmentalHazardManager.ts`:
 - `LavaHazard.ts` implementation
 - Fire-resistant zombie variant
 - Working volcano level with hazards
+
+Implement all tasks listed here. Don't just analyze. Don't do npm run test or npm lint or run dev.
