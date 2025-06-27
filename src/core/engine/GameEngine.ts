@@ -227,6 +227,10 @@ export class GameEngine {
     this.isRunning = false;
   }
 
+  public pause(): void {
+    this.setPaused(true);
+  }
+
   public setPaused(paused: boolean): void {
     const store = useGameStore.getState();
     if (paused) {
@@ -411,8 +415,8 @@ export class GameEngine {
     const level = this.levelManager.getCurrentLevel();
     const map = this.levelManager.getCurrentMap();
     
-    if (level && map && level.environmentalHazards) {
-      this.environmentalHazardManager.initialize(levelNumber, map.getLavaHazards());
+    if (level && map && typeof (map as any).getLavaHazards === 'function') {
+      this.environmentalHazardManager.initialize(levelNumber, (map as any).getLavaHazards());
     }
     
     // STEP 36: Create demo hazards for testing
@@ -909,8 +913,8 @@ export class GameEngine {
       const level = this.levelManager.getCurrentLevel();
       const map = this.levelManager.getCurrentMap();
       
-      if (level && map && level.environmentalHazards) {
-        this.environmentalHazardManager.initialize(levelId, map.getLavaHazards());
+      if (level && map && typeof (map as any).getLavaHazards === 'function') {
+        this.environmentalHazardManager.initialize(levelId, (map as any).getLavaHazards());
       }
       
       // STEP 36: Create demo hazards for testing

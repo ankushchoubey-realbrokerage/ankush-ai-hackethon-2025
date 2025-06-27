@@ -6,6 +6,7 @@ import { Vector3 } from '../../types';
 interface SoundConfig extends Partial<HowlOptions> {
   src: string[];
   pool?: number;
+  spatial?: boolean;
 }
 
 interface PlayingSoundInfo {
@@ -383,8 +384,24 @@ export class AudioManager {
   /**
    * Play weapon sound with automatic pooling
    */
-  public playWeaponSound(weaponType: 'pistol' | 'machine_gun', volume?: number): number | undefined {
-    const soundName = weaponType === 'pistol' ? 'pistol_fire' : 'machine_gun_fire';
+  public playWeaponSound(weaponType: 'pistol' | 'machine_gun' | 'shotgun' | 'rocket_launch', volume?: number): number | undefined {
+    let soundName: string;
+    switch (weaponType) {
+      case 'pistol':
+        soundName = 'pistol_fire';
+        break;
+      case 'machine_gun':
+        soundName = 'machine_gun_fire';
+        break;
+      case 'shotgun':
+        soundName = 'shotgun_fire';
+        break;
+      case 'rocket_launch':
+        soundName = 'rocket_launch';
+        break;
+      default:
+        soundName = 'pistol_fire';
+    }
     return this.playSound(soundName, volume);
   }
 

@@ -27,4 +27,5 @@ export interface GameStats {
   zombiesKilled: number;
   waveNumber: number;
   level: number;
+  time: number;
 }

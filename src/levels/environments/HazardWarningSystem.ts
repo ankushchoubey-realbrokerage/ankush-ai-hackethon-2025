@@ -105,9 +105,7 @@ class WarningIndicator {
     // Create warning icon (exclamation mark)
     const iconGeometry = new THREE.ConeGeometry(0.3, 1, 4);
     const iconMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffaa00,
-      emissive: 0xffaa00,
-      emissiveIntensity: 0.5
+      color: 0xffaa00
     });
     
     this.iconMesh = new THREE.Mesh(iconGeometry, iconMaterial);

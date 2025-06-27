@@ -5,7 +5,7 @@ import { GameCanvas } from './GameCanvas';
 import { HUD } from '../ui/hud/HUD';
 import { PauseMenu } from '../ui/menu/PauseMenu';
 import { GameOverScreen } from '../ui/menu/GameOverScreen';
-import { StateDebugPanel } from '../ui/debug/StateDebugPanel';
+// import { StateDebugPanel } from '../ui/debug/StateDebugPanel';
 
 export const Game: React.FC = () => {
   const gameState = useGameState();

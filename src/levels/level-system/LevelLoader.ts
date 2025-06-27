@@ -222,7 +222,7 @@ export class LevelLoader {
   private createWeaponPickupMesh(pickup: WeaponPickup): THREE.Mesh {
     // Create a glowing cube for weapon pickups
     const geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-    const material = new THREE.MeshBasicMaterial({
+    const material = new THREE.MeshStandardMaterial({
       color: 0xffff00,
       emissive: 0xffff00,
       emissiveIntensity: 0.5

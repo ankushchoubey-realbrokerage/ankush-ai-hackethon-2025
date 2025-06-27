@@ -22,6 +22,7 @@ export class Zombie implements IZombie {
   isDead: boolean = false;
   velocity = { x: 0, y: 0, z: 0 };
   speed: number = 2; // Slower than player
+  direction = { x: 0, y: 0, z: 0 };
   damage: number = 10;
   attackRange: number = 1.5;
   attackCooldown: number = 1; // 1 second between attacks
@@ -29,8 +30,8 @@ export class Zombie implements IZombie {
   specialAbilities?: string[];
   
   private mesh: THREE.Group;
-  private healthBarContainer: THREE.Group;
-  private healthBarFill: THREE.Mesh;
+  private healthBarContainer!: THREE.Group;
+  private healthBarFill!: THREE.Mesh;
   private audioManager: AudioManager | null = null;
   
   // STEP 28: Zombie sound properties
@@ -81,9 +82,7 @@ export class Zombie implements IZombie {
     const eyeGeometry = new THREE.BoxGeometry(0.15, 0.1, 0.1);
     const eyeColor = this.zombieType === 'fire-resistant' ? 0xff6600 : 0xff0000; // Orange vs red
     const eyeMaterial = new THREE.MeshBasicMaterial({ 
-      color: eyeColor,
-      emissive: eyeColor,
-      emissiveIntensity: this.zombieType === 'fire-resistant' ? 0.8 : 0.5
+      color: eyeColor
     });
     
     const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);

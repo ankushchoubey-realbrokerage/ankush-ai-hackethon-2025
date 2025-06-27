@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import { GameEngine } from '../core/engine/GameEngine';
 import { InputDisplay } from '../ui/hud/InputDisplay';
 import { DebugInfo } from '../ui/hud/DebugInfo';
-import { useIsPaused } from '../store/gameStore';
+// import { useIsPaused } from '../store/gameStore';
 
 interface GameCanvasProps {
   isPaused: boolean;

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Player as IPlayer, PlayerInput, Vector3 } from '../../types';
 import { Weapon } from '../../types';
 import { MouseUtils } from '../../utils/MouseUtils';
-import { Pistol, Shotgun, RocketLauncher } from '../../weapons';
+import { Pistol, Shotgun } from '../../weapons';
 import { AudioManager } from '../../core/audio/AudioManager';
 
 export class Player implements IPlayer {
@@ -253,6 +253,9 @@ export class Player implements IPlayer {
           z: this.transform.position.z + aimDir.z * spawnOffset
         };
         
+        // Default direction for weapons
+        let finalDirection = { ...aimDir };
+        
         // Check if this is a shotgun for multi-projectile handling
         if (currentWeapon.id === 'shotgun' && currentWeapon instanceof Shotgun) {
           // Shotgun fires multiple pellets in a spread pattern
@@ -317,7 +320,6 @@ export class Player implements IPlayer {
           }
         } else {
           // Normal single projectile weapons
-          let finalDirection = { ...aimDir };
           if (currentWeapon.spread && currentWeapon.spread > 0) {
             const spreadAngle = (Math.random() - 0.5) * currentWeapon.spread;
             const cos = Math.cos(spreadAngle);
@@ -495,7 +497,7 @@ export class Player implements IPlayer {
 
     // Add dot at end of aim line
     const dotGeometry = new THREE.SphereGeometry(0.1, 8, 8);
-    const dotMaterial = new THREE.MeshBasicMaterial({
+    const dotMaterial = new THREE.MeshStandardMaterial({
       color: 0xff0000,
       emissive: 0xff0000,
       emissiveIntensity: 0.5

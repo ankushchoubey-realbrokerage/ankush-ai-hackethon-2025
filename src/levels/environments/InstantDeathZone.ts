@@ -79,8 +79,6 @@ export class InstantDeathZone extends HazardZone {
       const signGeometry = new THREE.PlaneGeometry(0.5, 0.5);
       const signMaterial = new THREE.MeshBasicMaterial({
         color: 0xffff00,
-        emissive: 0xffff00,
-        emissiveIntensity: 0.5,
         side: THREE.DoubleSide
       });
       const sign = new THREE.Mesh(signGeometry, signMaterial);
