@@ -8,6 +8,7 @@ export class InputManager {
   private weaponSwitch: number | null = null;
   private debugMode: boolean = false;
   private debugCollisions: boolean = false;
+  private pauseToggled: boolean = false;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -54,6 +55,11 @@ export class InputManager {
       this.debugCollisions = true;
     }
     
+    // Toggle pause with ESC
+    if (e.key === 'Escape') {
+      this.pauseToggled = true;
+    }
+    
     // Log key presses in debug mode
     if (this.debugMode && import.meta.env.DEV) {
       console.log('Key pressed:', e.key);
@@ -95,7 +101,8 @@ export class InputManager {
       mousePosition: this.mousePosition,
       isFiring: this.isFiring || (this.keys.get(' ') || false),
       weaponSwitch: this.weaponSwitch !== null ? this.weaponSwitch : undefined,
-      debugCollisions: this.debugCollisions
+      debugCollisions: this.debugCollisions,
+      pauseToggled: this.pauseToggled
     };
     
     // Clear weapon switch after reading
@@ -106,6 +113,11 @@ export class InputManager {
     // Clear debug collision toggle after reading
     if (this.debugCollisions) {
       this.debugCollisions = false;
+    }
+    
+    // Clear pause toggle after reading
+    if (this.pauseToggled) {
+      this.pauseToggled = false;
     }
     
     return input;

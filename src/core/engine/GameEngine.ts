@@ -10,6 +10,7 @@ import { LevelManager } from '../../levels/level-system/LevelManager';
 import { GameStats, Entity } from '../../types';
 import { PerformanceMonitor } from '../../utils/PerformanceMonitor';
 import { CollisionDebugger } from '../../utils/CollisionDebugger';
+import { useGameStore } from '../../store/gameStore';
 
 export class GameEngine {
   private renderer: THREE.WebGLRenderer;
@@ -18,7 +19,6 @@ export class GameEngine {
   private clock: THREE.Clock;
   private container: HTMLElement;
   
-  private isPaused: boolean = false;
   private isRunning: boolean = false;
   
   private inputManager: InputManager;
@@ -31,12 +31,7 @@ export class GameEngine {
   private zombieManager: ZombieManager;
   private projectileManager: ProjectileManager;
   
-  private gameStats: GameStats = {
-    score: 0,
-    zombiesKilled: 0,
-    waveNumber: 1,
-    level: 1
-  };
+  // Store reference - we'll get fresh state on each access
   
   private performanceMonitor: PerformanceMonitor;
   private collisionDebugger: CollisionDebugger;
@@ -153,6 +148,7 @@ export class GameEngine {
 
   public start(): void {
     this.isRunning = true;
+    this.clock.start(); // Ensure clock is started
     this.gameLoop();
   }
 
@@ -161,8 +157,11 @@ export class GameEngine {
   }
 
   public setPaused(paused: boolean): void {
-    this.isPaused = paused;
-    if (!paused) {
+    const store = useGameStore.getState();
+    if (paused) {
+      store.pauseGame();
+    } else {
+      store.resumeGame();
       this.clock.start();
     }
   }
@@ -174,9 +173,16 @@ export class GameEngine {
     
     requestAnimationFrame(this.gameLoop);
     
-    if (!this.isPaused) {
+    const gameState = useGameStore.getState().gameState;
+    if (gameState === 'playing') {
       const deltaTime = this.clock.getDelta();
+      // Debug: Log deltaTime periodically
+      if (Math.random() < 0.01) {
+        console.log('Game running - deltaTime:', deltaTime, 'gameState:', gameState);
+      }
       this.update(deltaTime);
+    } else if (gameState === 'paused') {
+      // Clock is paused, no updates
     }
     
     this.render();
@@ -188,9 +194,25 @@ export class GameEngine {
     // Update input
     const input = this.inputManager.getInput();
     
+    // Debug: Log if we have movement input
+    if (input.movement.up || input.movement.down || input.movement.left || input.movement.right) {
+      console.log('Movement input detected:', input.movement);
+    }
+    
     // Toggle collision debug with F2
     if (input.debugCollisions) {
       this.collisionDebugger.toggleDebug();
+    }
+    
+    // Toggle pause with ESC
+    if (input.pauseToggled) {
+      const store = useGameStore.getState();
+      const currentState = store.gameState;
+      if (currentState === 'playing') {
+        store.pauseGame();
+      } else if (currentState === 'paused') {
+        store.resumeGame();
+      }
     }
     
     // Update player
@@ -221,8 +243,15 @@ export class GameEngine {
       });
     }
     
+    // Update player health in store only if it changed
+    const store = useGameStore.getState();
+    if (store.playerHealth !== this.player.health || store.playerMaxHealth !== this.player.maxHealth) {
+      store.setPlayerHealth(this.player.health, this.player.maxHealth);
+    }
+    
     // Check game over condition
-    if (this.player.isPlayerDead()) {
+    if (this.player.isPlayerDead() && store.gameState !== 'gameOver') {
+      store.gameOver();
       this.onGameOver();
     }
   }
@@ -261,7 +290,7 @@ export class GameEngine {
   }
 
   public getGameStats(): GameStats {
-    return this.gameStats;
+    return useGameStore.getState().gameStats;
   }
 
   public getInputManager(): InputManager {

@@ -19,4 +19,5 @@ export interface PlayerInput {
   isFiring: boolean;
   weaponSwitch?: number;
   debugCollisions?: boolean;
+  pauseToggled?: boolean;
 }

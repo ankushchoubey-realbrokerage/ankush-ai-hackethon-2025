@@ -2,14 +2,11 @@ import React from 'react';
 import { useGameStore } from '../../store/gameStore';
 
 export const HUD: React.FC = () => {
-  // This will be connected to game state later
-  const health = 100;
-  const maxHealth = 100;
+  const { gameStats, playerHealth, playerMaxHealth } = useGameStore();
+  
+  // TODO: Connect weapon info when weapon system is implemented
   const currentWeapon = 'Pistol';
   const ammo = -1; // -1 for unlimited
-  const score = 0;
-  const wave = 1;
-  const zombiesKilled = 0;
 
   return (
     <div style={{
@@ -37,13 +34,13 @@ export const HUD: React.FC = () => {
           overflow: 'hidden'
         }}>
           <div style={{
-            width: `${(health / maxHealth) * 100}%`,
+            width: `${(playerHealth / playerMaxHealth) * 100}%`,
             height: '100%',
             backgroundColor: '#4CAF50',
             transition: 'width 0.3s ease'
           }} />
         </div>
-        <span style={{ color: 'white', marginLeft: '10px' }}>{health}/{maxHealth}</span>
+        <span style={{ color: 'white', marginLeft: '10px' }}>{playerHealth}/{playerMaxHealth}</span>
       </div>
 
       {/* Weapon Info */}
@@ -64,9 +61,9 @@ export const HUD: React.FC = () => {
         color: 'white',
         fontSize: '18px'
       }}>
-        <div>Score: {score}</div>
-        <div>Wave: {wave}</div>
-        <div>Zombies Killed: {zombiesKilled}</div>
+        <div>Score: {gameStats.score}</div>
+        <div>Wave: {gameStats.waveNumber}</div>
+        <div>Zombies Killed: {gameStats.zombiesKilled}</div>
       </div>
     </div>
   );
