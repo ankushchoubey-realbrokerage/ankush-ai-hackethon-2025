@@ -108,6 +108,9 @@ export class GameEngine {
     // Add player to scene
     this.scene.add(this.player.getMesh());
     
+    // Set camera reference for player aiming
+    this.player.setCamera(this.camera, this.container);
+    
     // Add reference markers for testing (smaller, less intrusive)
     const markerGeometry = new THREE.SphereGeometry(0.3, 16, 16);
     const markerMaterial = new THREE.MeshStandardMaterial({ 

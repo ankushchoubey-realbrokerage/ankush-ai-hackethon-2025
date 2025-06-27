@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Player as IPlayer, PlayerInput, Vector3 } from '../../types';
 import { Weapon } from '../../types';
+import { MouseUtils } from '../../utils/MouseUtils';
 
 export class Player implements IPlayer {
   id: string = 'player';
@@ -40,6 +41,9 @@ export class Player implements IPlayer {
   };
 
   private mesh: THREE.Group;
+  private aimIndicator: THREE.Group | null = null;
+  private camera: THREE.OrthographicCamera | null = null;
+  private container: HTMLElement | null = null;
 
   constructor() {
     // Create player mesh group
@@ -104,6 +108,9 @@ export class Player implements IPlayer {
     
     // Update bounding box to match new size
     this.updateBoundingBox();
+    
+    // Create aim indicator line
+    this.createAimIndicator();
   }
 
   public update(deltaTime: number, input: PlayerInput): void {
@@ -217,8 +224,28 @@ export class Player implements IPlayer {
   }
 
   private updateRotation(mousePosition: { x: number; y: number }): void {
-    // This will be implemented properly when we integrate with the camera system
-    // For now, just a placeholder
+    if (!this.camera || !this.container) return;
+
+    // Convert screen coordinates to world coordinates
+    const mouseWorld = MouseUtils.screenToWorld(
+      mousePosition.x,
+      mousePosition.y,
+      this.camera,
+      this.container,
+      this.transform.position.y
+    );
+
+    // Calculate rotation angle
+    const angle = MouseUtils.calculateAimAngle(
+      new THREE.Vector3(this.transform.position.x, this.transform.position.y, this.transform.position.z),
+      mouseWorld
+    );
+
+    // Update player rotation
+    this.transform.rotation.y = angle;
+    
+    // Update aim indicator
+    this.updateAimIndicator(mouseWorld);
   }
 
   private fire(): void {
@@ -277,5 +304,79 @@ export class Player implements IPlayer {
 
   public getVelocity(): Vector3 {
     return { ...this.velocity };
+  }
+
+  public setCamera(camera: THREE.OrthographicCamera, container: HTMLElement): void {
+    this.camera = camera;
+    this.container = container;
+  }
+
+  private createAimIndicator(): void {
+    // Create a group for aim visualization
+    const aimGroup = new THREE.Group();
+
+    // Create main aim line
+    const lineGeometry = new THREE.BufferGeometry();
+    const positions = new Float32Array([
+      0, 0.8, 0.5,  // Start slightly in front of player
+      0, 0.8, 8     // End 8 units forward
+    ]);
+    lineGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    const lineMaterial = new THREE.LineBasicMaterial({
+      color: 0xffff00,
+      linewidth: 3,
+      transparent: true,
+      opacity: 0.8
+    });
+
+    const aimLine = new THREE.Line(lineGeometry, lineMaterial);
+    aimGroup.add(aimLine);
+
+    // Add aim cone for spread visualization
+    const coneGeometry = new THREE.ConeGeometry(1.5, 8, 8, 1, true);
+    const coneMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffff00,
+      transparent: true,
+      opacity: 0.15,
+      side: THREE.DoubleSide
+    });
+    
+    const aimCone = new THREE.Mesh(coneGeometry, coneMaterial);
+    aimCone.rotation.x = -Math.PI / 2; // Point forward
+    aimCone.position.set(0, 0.8, 4);
+    aimGroup.add(aimCone);
+
+    // Add dot at end of aim line
+    const dotGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+    const dotMaterial = new THREE.MeshBasicMaterial({
+      color: 0xff0000,
+      emissive: 0xff0000,
+      emissiveIntensity: 0.5
+    });
+    const aimDot = new THREE.Mesh(dotGeometry, dotMaterial);
+    aimDot.position.set(0, 0.8, 8);
+    aimGroup.add(aimDot);
+
+    this.aimIndicator = aimGroup as any;
+    this.mesh.add(this.aimIndicator);
+  }
+
+  private updateAimIndicator(mouseWorld: THREE.Vector3): void {
+    if (!this.aimIndicator) return;
+
+    // The aim indicator rotates with the player mesh, so no need to update it
+    // The rotation is handled by updating the player's rotation
+    // This method can be used for dynamic updates if needed
+  }
+
+  public getAimDirection(): Vector3 {
+    // Get the forward direction based on rotation
+    const angle = this.transform.rotation.y;
+    return {
+      x: Math.sin(angle),
+      y: 0,
+      z: Math.cos(angle)
+    };
   }
 }

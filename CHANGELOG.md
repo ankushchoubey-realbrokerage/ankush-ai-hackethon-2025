@@ -1,5 +1,48 @@
 # Changelog
 
+## Step 8: Mouse Aiming System - Completed ✅
+
+### Features Added
+1. **Mouse Position Capture**
+   - Already working from InputManager
+   - Real-time mouse tracking
+   - Screen coordinates captured correctly
+
+2. **Screen to World Coordinate Conversion**
+   - MouseUtils utility class created
+   - Proper isometric projection calculations
+   - Accounts for orthographic camera
+   - Player Y-plane intersection
+
+3. **Player Rotation Based on Mouse**
+   - Player rotates to face mouse cursor
+   - Smooth rotation updates
+   - Proper angle calculations
+   - Works in all directions
+
+4. **Aim Visualization**
+   - Yellow aim line showing direction
+   - Semi-transparent cone for spread visualization
+   - Red dot at aim point
+   - Rotates with player smoothly
+   - Professional looking aim indicator
+
+### Technical Implementation
+- MouseUtils.screenToWorld() for coordinate conversion
+- MouseUtils.calculateAimAngle() for rotation
+- MouseUtils.getAimDirection() for normalized vectors
+- Aim indicator as child of player mesh
+- No performance impact
+
+### Visual Features
+- Clear aim line (8 units long)
+- Cone showing potential spread
+- Red targeting dot
+- Yellow color scheme
+- Semi-transparent for visibility
+
+---
+
 ## Step 7: Player Movement - Completed ✅
 
 ### Features Added
