@@ -231,4 +231,12 @@ export class GameEngine {
   public getGameStats(): GameStats {
     return this.gameStats;
   }
+
+  public getInputManager(): InputManager {
+    return this.inputManager;
+  }
+
+  public getPlayer(): Player {
+    return this.player;
+  }
 }

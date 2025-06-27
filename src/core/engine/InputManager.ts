@@ -5,10 +5,17 @@ export class InputManager {
   private mousePosition: { x: number; y: number } = { x: 0, y: 0 };
   private isFiring: boolean = false;
   private canvas: HTMLCanvasElement;
+  private weaponSwitch: number | null = null;
+  private debugMode: boolean = false;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.setupEventListeners();
+    
+    // Log input manager initialization
+    if (import.meta.env.DEV) {
+      console.log('InputManager initialized');
+    }
   }
 
   private setupEventListeners(): void {
@@ -23,11 +30,27 @@ export class InputManager {
   }
 
   private handleKeyDown = (e: KeyboardEvent): void => {
+    // Prevent default for game keys
+    if (['w', 'a', 's', 'd', ' ', 'W', 'A', 'S', 'D'].includes(e.key)) {
+      e.preventDefault();
+    }
+    
     this.keys.set(e.key.toLowerCase(), true);
     
     // Handle weapon switching
     if (e.key >= '1' && e.key <= '4') {
-      // Will be implemented with weapon switching
+      this.weaponSwitch = parseInt(e.key) - 1; // 0-indexed
+    }
+    
+    // Toggle debug mode with F1
+    if (e.key === 'F1') {
+      this.debugMode = !this.debugMode;
+      console.log('Debug mode:', this.debugMode);
+    }
+    
+    // Log key presses in debug mode
+    if (this.debugMode && import.meta.env.DEV) {
+      console.log('Key pressed:', e.key);
     }
   };
 
@@ -56,7 +79,7 @@ export class InputManager {
   };
 
   public getInput(): PlayerInput {
-    return {
+    const input: PlayerInput = {
       movement: {
         up: this.keys.get('w') || false,
         down: this.keys.get('s') || false,
@@ -64,8 +87,34 @@ export class InputManager {
         right: this.keys.get('d') || false
       },
       mousePosition: this.mousePosition,
-      isFiring: this.isFiring || (this.keys.get(' ') || false)
+      isFiring: this.isFiring || (this.keys.get(' ') || false),
+      weaponSwitch: this.weaponSwitch !== null ? this.weaponSwitch : undefined
     };
+    
+    // Clear weapon switch after reading
+    if (this.weaponSwitch !== null) {
+      this.weaponSwitch = null;
+    }
+    
+    return input;
+  }
+
+  public isKeyPressed(key: string): boolean {
+    return this.keys.get(key.toLowerCase()) || false;
+  }
+
+  public getActiveKeys(): string[] {
+    const activeKeys: string[] = [];
+    this.keys.forEach((isPressed, key) => {
+      if (isPressed) {
+        activeKeys.push(key);
+      }
+    });
+    return activeKeys;
+  }
+
+  public isDebugMode(): boolean {
+    return this.debugMode;
   }
 
   public destroy(): void {

@@ -126,3 +126,6 @@ When working on this project:
 - Keep the UI intuitive and user-friendly
 - Consider demo-ability of features
 - Ensure the project runs smoothly for presentation
+
+## Changelog Management
+- Add a changelog file after each main step in completed format Step {no} title.md

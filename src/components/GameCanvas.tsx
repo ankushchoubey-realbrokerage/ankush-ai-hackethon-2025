@@ -1,6 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GameEngine } from '../core/engine/GameEngine';
+import { InputDisplay } from '../ui/hud/InputDisplay';
+import { DebugInfo } from '../ui/hud/DebugInfo';
 
 interface GameCanvasProps {
   isPaused: boolean;
@@ -10,6 +12,7 @@ interface GameCanvasProps {
 export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
+  const [showDebug, setShowDebug] = useState(true);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -36,16 +39,44 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver }) 
     }
   }, [isPaused]);
 
+  const getActiveKeys = () => {
+    return engineRef.current?.getInputManager()?.getActiveKeys() || [];
+  };
+
+  const getMousePosition = () => {
+    return engineRef.current?.getInputManager()?.getInput().mousePosition || { x: 0, y: 0 };
+  };
+
+  const getPlayerInfo = () => {
+    const player = engineRef.current?.getPlayer();
+    if (!player) return null;
+    return {
+      position: player.getPosition(),
+      rotation: player.getRotation()
+    };
+  };
+
   return (
-    <div 
-      ref={mountRef} 
-      style={{ 
-        width: '100%', 
-        height: '100%',
-        position: 'absolute',
-        top: 0,
-        left: 0
-      }} 
-    />
+    <>
+      <div 
+        ref={mountRef} 
+        style={{ 
+          width: '100%', 
+          height: '100%',
+          position: 'absolute',
+          top: 0,
+          left: 0
+        }} 
+      />
+      {showDebug && (
+        <>
+          <InputDisplay 
+            getActiveKeys={getActiveKeys}
+            getMousePosition={getMousePosition}
+          />
+          <DebugInfo getPlayerInfo={getPlayerInfo} />
+        </>
+      )}
+    </>
   );
 };
