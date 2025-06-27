@@ -105,12 +105,16 @@ export class GameEngine {
     // Set scene for managers that need it
     this.zombieManager.setScene(this.scene);
     this.projectileManager.setScene(this.scene);
+    this.projectileManager.setPhysicsEngine(this.physicsEngine);
     
     // Add player to scene
     this.scene.add(this.player.getMesh());
     
     // Set camera reference for player aiming
     this.player.setCamera(this.camera, this.container);
+    
+    // Set projectile manager reference for player
+    this.player.setProjectileManager(this.projectileManager);
     
     // Register player with physics engine
     this.physicsEngine.addEntity(this.player);

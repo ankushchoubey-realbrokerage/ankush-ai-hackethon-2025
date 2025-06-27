@@ -1,5 +1,54 @@
 # Changelog
 
+## Step 13: Shooting Mechanism - Completed ✅
+
+### Features Added
+1. **Spacebar Shooting**
+   - Already implemented in InputManager
+   - Both left click and spacebar trigger firing
+   - Seamless input handling for player preference
+
+2. **Projectile Entity**
+   - Complete Projectile class with Entity interface
+   - Yellow sphere with orange trail effect
+   - 3-second lifetime before auto-removal
+   - Smooth movement and rotation
+
+3. **Projectile Spawning**
+   - Spawns at player position (0.8 units high)
+   - Slightly offset forward to avoid self-collision
+   - Inherits weapon damage and speed
+   - Proper ownership tracking
+
+4. **Aim Direction Movement**
+   - Projectiles move in player's aim direction
+   - Weapon spread applied for realism
+   - Velocity calculated from direction and speed
+   - Automatic rotation to face movement direction
+
+### Technical Implementation
+- Projectile entity with full lifecycle management
+- ProjectileManager rewritten for entity-based projectiles
+- Integration with physics engine for collision detection
+- Automatic cleanup when out of bounds (50 units)
+- Player-ProjectileManager connection through GameEngine
+
+### Visual Features
+- Glowing yellow projectile sphere
+- Orange trail effect for motion
+- Emissive materials for visibility
+- Shadows enabled for realism
+- Proper 3D rotation alignment
+
+### System Integration
+- Fire rate limiting from weapon system
+- Spread calculation for weapon accuracy
+- Physics engine registration/removal
+- Scene management for visuals
+- Proper entity lifecycle handling
+
+---
+
 ## Step 12: Weapon System Foundation - Completed ✅
 
 ### Features Added

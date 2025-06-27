@@ -1,58 +1,81 @@
 import * as THREE from 'three';
-import { Projectile } from '../../types';
+import { Projectile } from './Projectile';
+import { Vector3 } from '../../types';
 
 export class ProjectileManager {
   private projectiles: Map<string, Projectile> = new Map();
   private scene: THREE.Scene | null = null;
-  private projectileIdCounter: number = 0;
+  private physicsEngine: any = null;
 
   public setScene(scene: THREE.Scene): void {
     this.scene = scene;
   }
+  
+  public setPhysicsEngine(physicsEngine: any): void {
+    this.physicsEngine = physicsEngine;
+  }
 
-  public createProjectile(projectile: Omit<Projectile, 'id'>): void {
-    const id = `projectile_${this.projectileIdCounter++}`;
-    const newProjectile: Projectile = {
-      ...projectile,
-      id
-    };
+  public createProjectile(
+    position: Vector3,
+    direction: Vector3,
+    damage: number,
+    projectileSpeed: number,
+    ownerId: string
+  ): void {
+    if (!this.scene) return;
     
-    this.projectiles.set(id, newProjectile);
+    const projectile = new Projectile(
+      position,
+      direction,
+      damage,
+      projectileSpeed,
+      ownerId
+    );
     
-    // Add visual representation to scene
-    // This will be implemented in later steps
+    this.projectiles.set(projectile.id, projectile);
+    this.scene.add(projectile.getMesh());
+    
+    // Register with physics engine
+    if (this.physicsEngine) {
+      this.physicsEngine.addEntity(projectile);
+    }
   }
 
   public update(deltaTime: number): void {
-    this.projectiles.forEach((projectile, id) => {
-      // Update projectile position
-      projectile.position.x += projectile.velocity.x * deltaTime;
-      projectile.position.y += projectile.velocity.y * deltaTime;
-      projectile.position.z += projectile.velocity.z * deltaTime;
+    const toRemove: string[] = [];
+    
+    this.projectiles.forEach((projectile) => {
+      projectile.update(deltaTime);
       
-      // Update lifetime
-      projectile.lifetime -= deltaTime;
-      
-      // Remove if lifetime expired or out of bounds
-      if (projectile.lifetime <= 0 || this.isOutOfBounds(projectile)) {
-        this.removeProjectile(id);
+      // Remove if inactive or out of bounds
+      if (!projectile.active || this.isOutOfBounds(projectile)) {
+        toRemove.push(projectile.id);
       }
     });
+    
+    // Remove inactive projectiles
+    toRemove.forEach(id => this.removeProjectile(id));
   }
 
   private isOutOfBounds(projectile: Projectile): boolean {
     const maxDistance = 50;
-    const distance = Math.sqrt(
-      projectile.position.x ** 2 + 
-      projectile.position.z ** 2
-    );
+    const pos = projectile.transform.position;
+    const distance = Math.sqrt(pos.x ** 2 + pos.z ** 2);
     return distance > maxDistance;
   }
 
   private removeProjectile(projectileId: string): void {
+    const projectile = this.projectiles.get(projectileId);
+    if (projectile) {
+      if (this.scene) {
+        this.scene.remove(projectile.getMesh());
+      }
+      if (this.physicsEngine) {
+        this.physicsEngine.removeEntity(projectile.id);
+      }
+      projectile.destroy();
+    }
     this.projectiles.delete(projectileId);
-    // Remove from scene
-    // This will be implemented when we add visual representation
   }
 
   public getProjectiles(): Projectile[] {
@@ -60,8 +83,8 @@ export class ProjectileManager {
   }
 
   public clear(): void {
-    this.projectiles.forEach((projectile, id) => {
-      this.removeProjectile(id);
+    this.projectiles.forEach((projectile) => {
+      this.removeProjectile(projectile.id);
     });
   }
 }

@@ -5,6 +5,7 @@ import { MouseUtils } from '../../utils/MouseUtils';
 import { Pistol } from '../../weapons';
 
 export class Player implements IPlayer {
+  private projectileManager: any = null; // Will be set by GameEngine
   id: string = 'player';
   type: 'player' = 'player';
   transform = {
@@ -221,12 +222,40 @@ export class Player implements IPlayer {
 
   private fire(): void {
     const currentWeapon = this.getCurrentWeapon();
-    if (currentWeapon && currentWeapon.fire) {
+    if (currentWeapon && currentWeapon.fire && this.projectileManager) {
       // Fire the weapon
       const fired = currentWeapon.fire();
       if (fired) {
-        // TODO: Create projectile when projectile system is implemented
-        console.log(`Fired ${currentWeapon.name}! Ammo: ${currentWeapon.isUnlimited ? '∞' : currentWeapon.ammo}/${currentWeapon.maxAmmo}`);
+        // Calculate spawn position (slightly in front of player)
+        const spawnOffset = 0.5;
+        const aimDir = this.getAimDirection();
+        const spawnPosition = {
+          x: this.transform.position.x + aimDir.x * spawnOffset,
+          y: this.transform.position.y + 0.8, // Shoot from roughly gun height
+          z: this.transform.position.z + aimDir.z * spawnOffset
+        };
+        
+        // Apply weapon spread if any
+        let finalDirection = { ...aimDir };
+        if (currentWeapon.spread && currentWeapon.spread > 0) {
+          const spreadAngle = (Math.random() - 0.5) * currentWeapon.spread;
+          const cos = Math.cos(spreadAngle);
+          const sin = Math.sin(spreadAngle);
+          finalDirection = {
+            x: aimDir.x * cos - aimDir.z * sin,
+            y: 0,
+            z: aimDir.x * sin + aimDir.z * cos
+          };
+        }
+        
+        // Create projectile
+        this.projectileManager.createProjectile(
+          spawnPosition,
+          finalDirection,
+          currentWeapon.damage,
+          currentWeapon.projectileSpeed,
+          this.id
+        );
       }
     }
   }
@@ -363,5 +392,9 @@ export class Player implements IPlayer {
     if (index >= 0 && index < this.weapons.length) {
       this.currentWeaponIndex = index;
     }
+  }
+  
+  public setProjectileManager(projectileManager: any): void {
+    this.projectileManager = projectileManager;
   }
 }
