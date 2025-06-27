@@ -20,8 +20,9 @@ export class Projectile implements Entity {
   damage: number;
   ownerId: string;
   lifetime: number;
-  maxLifetime: number = 3; // 3 seconds max lifetime
+  maxLifetime: number = 5; // 5 seconds max lifetime for longer range
   projectileSpeed: number;
+  collisionDelay: number = 0.1; // 0.1 second delay before collision detection
   
   private mesh: THREE.Mesh;
   
@@ -47,11 +48,11 @@ export class Projectile implements Entity {
     };
     
     // Create mesh
-    const geometry = new THREE.SphereGeometry(0.1, 8, 8);
+    const geometry = new THREE.SphereGeometry(0.15, 8, 8); // Slightly larger
     const material = new THREE.MeshStandardMaterial({
       color: 0xffff00,
       emissive: 0xffff00,
-      emissiveIntensity: 0.8,
+      emissiveIntensity: 1.0, // Brighter glow
       metalness: 0.3,
       roughness: 0.4
     });
@@ -107,5 +108,10 @@ export class Projectile implements Entity {
   public destroy(): void {
     this.active = false;
     // Mesh removal will be handled by ProjectileManager
+  }
+  
+  public canCollide(): boolean {
+    // Only allow collisions after the delay period
+    return this.lifetime > this.collisionDelay;
   }
 }

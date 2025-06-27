@@ -7,7 +7,7 @@ import { Player } from '../../entities/player/Player';
 import { ZombieManager } from '../../entities/enemies/ZombieManager';
 import { ProjectileManager } from '../../entities/projectiles/ProjectileManager';
 import { LevelManager } from '../../levels/level-system/LevelManager';
-import { GameStats, Entity } from '../../types';
+import { GameStats, Entity, Vector3 } from '../../types';
 import { PerformanceMonitor } from '../../utils/PerformanceMonitor';
 import { CollisionDebugger } from '../../utils/CollisionDebugger';
 import { useGameStore } from '../../store/gameStore';
@@ -223,6 +223,9 @@ export class GameEngine {
     // Update projectiles
     this.projectileManager.update(deltaTime);
     
+    // Check projectile collisions
+    this.checkProjectileCollisions();
+    
     // Update physics
     this.physicsEngine.update(deltaTime);
     
@@ -362,5 +365,123 @@ export class GameEngine {
       // Add as static entity to physics
       this.physicsEngine.addEntity(obstacle, true);
     });
+  }
+  
+  private checkProjectileCollisions(): void {
+    const projectiles = this.projectileManager.getProjectiles();
+    
+    projectiles.forEach(projectile => {
+      // Skip collision check if projectile is too young (to avoid self-collision)
+      if (!projectile.canCollide()) return;
+      
+      // Get all collisions for this projectile
+      const collisions = this.physicsEngine.getCollisions(projectile);
+      
+      // Check if projectile hit anything (except its owner and other projectiles)
+      const hitSomething = collisions.some(entity => {
+        // Skip the owner (player who shot it)
+        if (entity.id === projectile.ownerId) return false;
+        // Skip other projectiles
+        if (entity.type === 'projectile') return false;
+        // Hit something valid
+        return true;
+      });
+      
+      if (hitSomething) {
+        // Create explosion effect at projectile position
+        this.createExplosionEffect(projectile.transform.position);
+        
+        // TODO: Play explosion sound effect when audio system is ready
+        // this.audioManager.playSound('explosion');
+        
+        // Mark projectile for removal
+        projectile.active = false;
+      }
+    });
+  }
+  
+  private createExplosionEffect(position: Vector3): void {
+    // Create flash effect
+    const flashGeometry = new THREE.SphereGeometry(1, 8, 8);
+    const flashMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffff00,
+      transparent: true,
+      opacity: 0.8
+    });
+    const flash = new THREE.Mesh(flashGeometry, flashMaterial);
+    flash.position.set(position.x, position.y, position.z);
+    this.scene.add(flash);
+    
+    // Animate flash
+    const flashStart = Date.now();
+    const flashAnimate = () => {
+      const elapsed = Date.now() - flashStart;
+      const progress = elapsed / 200; // 0.2 seconds
+      
+      if (progress < 1) {
+        flash.scale.setScalar(1 + progress * 2);
+        flashMaterial.opacity = 0.8 * (1 - progress);
+        requestAnimationFrame(flashAnimate);
+      } else {
+        this.scene.remove(flash);
+      }
+    };
+    flashAnimate();
+    
+    // Create explosion particles
+    const particleCount = 20;
+    const explosionGroup = new THREE.Group();
+    
+    for (let i = 0; i < particleCount; i++) {
+      const particleGeometry = new THREE.SphereGeometry(0.1, 4, 4);
+      const particleMaterial = new THREE.MeshBasicMaterial({
+        color: new THREE.Color().setHSL(0.1 * Math.random(), 1, 0.5),
+        transparent: true,
+        opacity: 1
+      });
+      
+      const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+      
+      // Random direction
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 2 + Math.random() * 3;
+      const velocityX = Math.cos(angle) * speed;
+      const velocityZ = Math.sin(angle) * speed;
+      const velocityY = Math.random() * 3;
+      
+      particle.position.set(position.x, position.y, position.z);
+      
+      // Animate particle
+      const startTime = Date.now();
+      const duration = 500; // 0.5 seconds
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = elapsed / duration;
+        
+        if (progress < 1) {
+          particle.position.x += velocityX * 0.016;
+          particle.position.y += velocityY * 0.016 - 0.3 * progress * 0.016; // Gravity
+          particle.position.z += velocityZ * 0.016;
+          
+          particleMaterial.opacity = 1 - progress;
+          particle.scale.setScalar(1 - progress * 0.5);
+          
+          requestAnimationFrame(animate);
+        } else {
+          this.scene.remove(particle);
+        }
+      };
+      
+      animate();
+      explosionGroup.add(particle);
+    }
+    
+    this.scene.add(explosionGroup);
+    
+    // Remove explosion group after animation
+    setTimeout(() => {
+      this.scene.remove(explosionGroup);
+    }, 600);
   }
 }

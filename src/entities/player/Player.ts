@@ -226,8 +226,8 @@ export class Player implements IPlayer {
       // Fire the weapon
       const fired = currentWeapon.fire();
       if (fired) {
-        // Calculate spawn position (slightly in front of player)
-        const spawnOffset = 0.5;
+        // Calculate spawn position (further in front of player to avoid self-collision)
+        const spawnOffset = 1.0; // Increased from 0.5 to avoid collision
         const aimDir = this.getAimDirection();
         const spawnPosition = {
           x: this.transform.position.x + aimDir.x * spawnOffset,

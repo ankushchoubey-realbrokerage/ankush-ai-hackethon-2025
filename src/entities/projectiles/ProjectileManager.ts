@@ -68,7 +68,7 @@ export class ProjectileManager {
   }
 
   private isOutOfBounds(projectile: Projectile): boolean {
-    const maxDistance = 50;
+    const maxDistance = 100; // Increased from 50 for longer range
     const pos = projectile.transform.position;
     const distance = Math.sqrt(pos.x ** 2 + pos.z ** 2);
     return distance > maxDistance;
