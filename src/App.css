@@ -1,23 +1,16 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
 .game-container {
   width: 100vw;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color: #1a1a1a;
-  color: #ffffff;
-  font-family: Arial, sans-serif;
-  overflow: hidden;
-}
-
-.game-container h1 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.game-container p {
-  font-size: 1.2rem;
-  color: #cccccc;
+  position: relative;
 }
