@@ -23,6 +23,7 @@ export class Projectile implements Entity {
   maxLifetime: number = 5; // 5 seconds max lifetime for longer range
   projectileSpeed: number;
   collisionDelay: number = 0.1; // 0.1 second delay before collision detection
+  collisionRadius: number = 0.3; // Collision sphere radius for easier hits
   
   private mesh: THREE.Mesh;
   
@@ -31,7 +32,8 @@ export class Projectile implements Entity {
     direction: Vector3,
     damage: number,
     projectileSpeed: number,
-    ownerId: string
+    ownerId: string,
+    collisionRadius?: number
   ) {
     this.id = `projectile-${Date.now()}-${Math.random()}`;
     this.transform.position = { ...position };
@@ -40,6 +42,11 @@ export class Projectile implements Entity {
     this.projectileSpeed = projectileSpeed;
     this.lifetime = 0;
     
+    // Allow custom collision radius for different weapon types
+    if (collisionRadius !== undefined) {
+      this.collisionRadius = collisionRadius;
+    }
+    
     // Calculate velocity from direction and speed
     this.velocity = {
       x: direction.x * projectileSpeed,
@@ -47,8 +54,8 @@ export class Projectile implements Entity {
       z: direction.z * projectileSpeed
     };
     
-    // Create mesh
-    const geometry = new THREE.SphereGeometry(0.15, 8, 8); // Slightly larger
+    // Create mesh - make it bigger to match collision radius better
+    const geometry = new THREE.SphereGeometry(0.2, 8, 8); // Larger visual to match collision
     const material = new THREE.MeshStandardMaterial({
       color: 0xffff00,
       emissive: 0xffff00,
@@ -71,6 +78,19 @@ export class Projectile implements Entity {
     trail.rotation.x = Math.PI / 2; // Point backwards
     trail.position.z = -0.15;
     this.mesh.add(trail);
+    
+    // Debug: Add collision radius visualization (comment out in production)
+    if (import.meta.env.DEV && false) { // Set to true to see collision radius
+      const debugGeometry = new THREE.SphereGeometry(this.collisionRadius, 16, 16);
+      const debugMaterial = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        transparent: true,
+        opacity: 0.2,
+        wireframe: true
+      });
+      const debugSphere = new THREE.Mesh(debugGeometry, debugMaterial);
+      this.mesh.add(debugSphere);
+    }
   }
   
   public update(deltaTime: number): void {
@@ -113,5 +133,9 @@ export class Projectile implements Entity {
   public canCollide(): boolean {
     // Only allow collisions after the delay period
     return this.lifetime > this.collisionDelay;
+  }
+  
+  public getCollisionRadius(): number {
+    return this.collisionRadius;
   }
 }

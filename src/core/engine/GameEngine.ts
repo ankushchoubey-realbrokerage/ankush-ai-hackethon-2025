@@ -944,24 +944,43 @@ export class GameEngine {
       zombies.forEach(zombie => {
         if (!zombie.active || zombie.isDead) return;
         
-        // Simple AABB collision check between projectile and zombie
+        // Improved collision detection with larger hit area
         const projPos = projectile.transform.position;
         const zombiePos = zombie.transform.position;
         const zombieBox = zombie.boundingBox;
         
-        // Calculate zombie's world space bounding box
-        const zombieMinX = zombiePos.x + zombieBox.min.x;
-        const zombieMaxX = zombiePos.x + zombieBox.max.x;
+        // Get projectile's collision radius for easier hits
+        const projectileRadius = projectile.getCollisionRadius();
+        
+        // Calculate zombie's world space bounding box with some padding
+        const hitboxPadding = 0.2; // Extra padding for easier hits
+        const zombieMinX = zombiePos.x + zombieBox.min.x - hitboxPadding;
+        const zombieMaxX = zombiePos.x + zombieBox.max.x + hitboxPadding;
         const zombieMinY = zombiePos.y + zombieBox.min.y;
         const zombieMaxY = zombiePos.y + zombieBox.max.y;
-        const zombieMinZ = zombiePos.z + zombieBox.min.z;
-        const zombieMaxZ = zombiePos.z + zombieBox.max.z;
+        const zombieMinZ = zombiePos.z + zombieBox.min.z - hitboxPadding;
+        const zombieMaxZ = zombiePos.z + zombieBox.max.z + hitboxPadding;
         
+        // Check sphere-box collision (projectile sphere vs zombie box)
+        // Find closest point on box to sphere center
+        const closestX = Math.max(zombieMinX, Math.min(projPos.x, zombieMaxX));
+        const closestY = Math.max(zombieMinY, Math.min(projPos.y, zombieMaxY));
+        const closestZ = Math.max(zombieMinZ, Math.min(projPos.z, zombieMaxZ));
         
-        // Check if projectile point is inside zombie bounding box
-        if (projPos.x >= zombieMinX && projPos.x <= zombieMaxX &&
-            projPos.y >= zombieMinY && projPos.y <= zombieMaxY &&
-            projPos.z >= zombieMinZ && projPos.z <= zombieMaxZ) {
+        // Calculate distance from projectile to closest point
+        const dx = projPos.x - closestX;
+        const dy = projPos.y - closestY;
+        const dz = projPos.z - closestZ;
+        const distanceSquared = dx * dx + dy * dy + dz * dz;
+        const distance = Math.sqrt(distanceSquared);
+        
+        // Debug logging for near misses
+        if (distance <= projectileRadius * 2) {
+          console.log(`[Collision] Projectile distance to zombie: ${distance.toFixed(2)}, radius: ${projectileRadius}`);
+        }
+        
+        // Check if projectile sphere intersects with zombie box
+        if (distanceSquared <= projectileRadius * projectileRadius) {
           
           console.log(`HIT! Zombie hit by projectile with damage=${projectile.damage}. Health: ${zombie.health} -> ${zombie.health - projectile.damage}`);
           

@@ -1,0 +1,1 @@
+For some reason when we shoot, it does not kill. You have to be in a certain distance. Only. Then it kills make it easier for to kill the zombie. I think it's a certain point at which it kills so I would like that to be bigger and easier.
