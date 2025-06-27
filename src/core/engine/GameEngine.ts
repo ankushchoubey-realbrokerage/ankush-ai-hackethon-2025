@@ -14,6 +14,7 @@ import { useGameStore } from '../../store/gameStore';
 import { useWeaponStore } from '../../store/weaponStore';
 import { ParticleSystem } from '../../effects/ParticleSystem';
 import { EnvironmentalHazardManager } from '../../levels/environments/EnvironmentalHazardManager';
+import { Explosion } from '../../effects/Explosion';
 
 export class GameEngine {
   private renderer: THREE.WebGLRenderer;
@@ -45,6 +46,10 @@ export class GameEngine {
   
   // STEP 35: Environmental Hazard Manager
   private environmentalHazardManager: EnvironmentalHazardManager;
+  
+  // STEP 37: Screen shake for explosions
+  private screenShakeIntensity: number = 0;
+  private originalCameraPosition: THREE.Vector3 | null = null;
 
   constructor(container: HTMLElement, onGameOver: () => void) {
     this.container = container;
@@ -125,6 +130,7 @@ export class GameEngine {
     this.zombieManager.setAudioManager(this.audioManager); // STEP 28: Set audio manager
     this.projectileManager.setScene(this.scene);
     this.projectileManager.setPhysicsEngine(this.physicsEngine);
+    this.projectileManager.setAudioManager(this.audioManager); // STEP 37: Set audio for explosions
     this.levelManager.setScene(this.scene); // STEP 35: Set scene for level manager
     
     // Add player to scene
@@ -283,6 +289,19 @@ export class GameEngine {
       ...this.zombieManager.getZombies()
     ];
     this.environmentalHazardManager.update(damagableEntities, deltaTime);
+    
+    // STEP 37: Update explosions
+    Explosion.setEntities(damagableEntities);
+    Explosion.update(deltaTime);
+    
+    // Update camera position for projectile manager
+    this.projectileManager.setCameraInfo(
+      this.camera.position,
+      (intensity: number) => this.applyScreenShake(intensity)
+    );
+    
+    // Update screen shake
+    this.updateScreenShake(deltaTime);
     
     // Update collision debug visualization
     if (this.collisionDebugger.isEnabled()) {
@@ -783,5 +802,35 @@ export class GameEngine {
         }
       }
     });
+  }
+  
+  // STEP 37: Screen shake implementation
+  private applyScreenShake(intensity: number): void {
+    this.screenShakeIntensity = Math.max(this.screenShakeIntensity, intensity);
+    if (!this.originalCameraPosition) {
+      this.originalCameraPosition = this.camera.position.clone();
+    }
+  }
+  
+  private updateScreenShake(deltaTime: number): void {
+    if (this.screenShakeIntensity > 0) {
+      // Apply shake
+      const shakeX = (Math.random() - 0.5) * this.screenShakeIntensity * 0.5;
+      const shakeY = (Math.random() - 0.5) * this.screenShakeIntensity * 0.5;
+      
+      if (this.originalCameraPosition) {
+        this.camera.position.x = this.originalCameraPosition.x + shakeX;
+        this.camera.position.y = this.originalCameraPosition.y + shakeY;
+      }
+      
+      // Decay shake
+      this.screenShakeIntensity *= 0.9;
+      if (this.screenShakeIntensity < 0.01) {
+        this.screenShakeIntensity = 0;
+        if (this.originalCameraPosition) {
+          this.camera.position.copy(this.originalCameraPosition);
+        }
+      }
+    }
   }
 }

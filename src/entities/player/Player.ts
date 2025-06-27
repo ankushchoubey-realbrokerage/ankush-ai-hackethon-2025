@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Player as IPlayer, PlayerInput, Vector3 } from '../../types';
 import { Weapon } from '../../types';
 import { MouseUtils } from '../../utils/MouseUtils';
-import { Pistol } from '../../weapons';
+import { Pistol, RocketLauncher } from '../../weapons';
 import { AudioManager } from '../../core/audio/AudioManager';
 
 export class Player implements IPlayer {
@@ -104,8 +104,9 @@ export class Player implements IPlayer {
     this.mesh = group;
     this.mesh.position.set(this.transform.position.x, this.transform.position.y, this.transform.position.z);
 
-    // Initialize with pistol
+    // Initialize with pistol and rocket launcher
     this.weapons.push(new Pistol());
+    this.weapons.push(new RocketLauncher());
     
     // Update bounding box to match new size
     this.updateBoundingBox();
@@ -266,14 +267,29 @@ export class Player implements IPlayer {
           };
         }
         
-        // Create projectile
-        this.projectileManager.createProjectile(
-          spawnPosition,
-          finalDirection,
-          currentWeapon.damage,
-          currentWeapon.projectileSpeed,
-          this.id
-        );
+        // STEP 37: Create appropriate projectile type
+        if (currentWeapon.id === 'rocketlauncher') {
+          // Create rocket with explosion properties
+          const rocketLauncher = currentWeapon as any;
+          this.projectileManager.createRocket(
+            spawnPosition,
+            finalDirection,
+            currentWeapon.damage,
+            currentWeapon.projectileSpeed,
+            this.id,
+            rocketLauncher.explosionRadius || 5,
+            rocketLauncher.splashDamage || 75
+          );
+        } else {
+          // Create normal projectile
+          this.projectileManager.createProjectile(
+            spawnPosition,
+            finalDirection,
+            currentWeapon.damage,
+            currentWeapon.projectileSpeed,
+            this.id
+          );
+        }
         
         // STEP 27: Play weapon sound
         if (this.audioManager) {
@@ -282,6 +298,8 @@ export class Player implements IPlayer {
             this.audioManager.playWeaponSound('pistol', 0.5);
           } else if (currentWeapon.id === 'machine_gun') {
             this.audioManager.playWeaponSound('machine_gun', 0.4);
+          } else if (currentWeapon.id === 'rocketlauncher') {
+            this.audioManager.playWeaponSound('rocket_launch', 0.7);
           }
         }
         
