@@ -5,6 +5,8 @@ import { GameCanvas } from './GameCanvas';
 import { HUD } from '../ui/hud/HUD';
 import { PauseMenu } from '../ui/menu/PauseMenu';
 import { GameOverScreen } from '../ui/menu/GameOverScreen';
+import { LevelCompleteScreen } from '../ui/menu/LevelCompleteScreen';
+import { levelConfigs } from '../levels/maps/levelConfigs';
 // import { StateDebugPanel } from '../ui/debug/StateDebugPanel';
 
 export const Game: React.FC = () => {
@@ -59,6 +61,19 @@ export const Game: React.FC = () => {
         <GameOverScreen 
           onRestart={() => handleStartGame(selectedLevelId)}
           onMainMenu={handleBackToMenu}
+        />
+      )}
+      
+      {gameState === 'levelComplete' && (
+        <LevelCompleteScreen
+          onNextLevel={() => {
+            const nextLevelId = selectedLevelId + 1;
+            if (levelConfigs.has(nextLevelId)) {
+              handleStartGame(nextLevelId);
+            }
+          }}
+          onMainMenu={handleBackToMenu}
+          hasNextLevel={levelConfigs.has(selectedLevelId + 1)}
         />
       )}
     </div>

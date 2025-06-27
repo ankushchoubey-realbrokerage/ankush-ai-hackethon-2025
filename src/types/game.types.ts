@@ -20,7 +20,7 @@ export interface Transform {
   scale: Vector3;
 }
 
-export type GameState = 'menu' | 'playing' | 'paused' | 'gameOver';
+export type GameState = 'menu' | 'playing' | 'paused' | 'gameOver' | 'levelComplete';
 
 export interface GameStats {
   score: number;

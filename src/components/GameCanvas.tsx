@@ -52,7 +52,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ isPaused, onGameOver, le
   }, []); // Empty dependency array - only run once
 
   useEffect(() => {
-    if (engineRef.current) {
+    // Only update pause state after initial mount
+    if (engineRef.current && mountRef.current) {
       engineRef.current.setPaused(isPaused);
     }
   }, [isPaused]);

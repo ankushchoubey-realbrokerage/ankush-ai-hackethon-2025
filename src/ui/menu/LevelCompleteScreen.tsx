@@ -3,30 +3,39 @@ import { useGameStore } from '../../store/gameStore';
 import { playSound } from '../../utils/audioUtils';
 import './MainMenu.css';
 
-interface GameOverScreenProps {
-  onRestart: () => void;
+interface LevelCompleteScreenProps {
+  onNextLevel: () => void;
   onMainMenu: () => void;
+  hasNextLevel: boolean;
 }
 
-export const GameOverScreen: React.FC<GameOverScreenProps> = ({ onRestart, onMainMenu }) => {
+export const LevelCompleteScreen: React.FC<LevelCompleteScreenProps> = ({ 
+  onNextLevel, 
+  onMainMenu,
+  hasNextLevel 
+}) => {
   const { gameStats } = useGameStore();
-  const { score, zombiesKilled, waveNumber } = gameStats;
+  const { score, zombiesKilled, waveNumber, level } = gameStats;
 
   useEffect(() => {
-    // Play game over sound
-    playSound('gameOver');
+    // Play victory sound
+    playSound('levelComplete');
   }, []);
 
   const playClick = () => playSound('menuClick');
   const playHover = () => playSound('menuHover');
 
   return (
-    <div className="mainMenu gameOverScreen">
-      <h1 className="title gameOverTitle">GAME OVER</h1>
+    <div className="mainMenu levelCompleteScreen">
+      <h1 className="title successTitle">LEVEL COMPLETE!</h1>
+      
+      <div className="levelInfo">
+        <h2>Level {level} Cleared</h2>
+      </div>
       
       <div className="statsContainer">
         <div className="statItem">
-          <span className="statLabel">Final Score</span>
+          <span className="statLabel">Score</span>
           <span className="statValue">{score.toLocaleString()}</span>
         </div>
         <div className="statItem">
@@ -34,22 +43,24 @@ export const GameOverScreen: React.FC<GameOverScreenProps> = ({ onRestart, onMai
           <span className="statValue">{zombiesKilled}</span>
         </div>
         <div className="statItem">
-          <span className="statLabel">Waves Survived</span>
-          <span className="statValue">{waveNumber - 1}</span>
+          <span className="statLabel">Waves Completed</span>
+          <span className="statValue">{waveNumber}</span>
         </div>
       </div>
       
       <div className="menuButtons">
-        <button
-          className="menuButton primaryButton"
-          onClick={() => {
-            playClick();
-            onRestart();
-          }}
-          onMouseEnter={playHover}
-        >
-          Try Again
-        </button>
+        {hasNextLevel && (
+          <button
+            className="menuButton primaryButton"
+            onClick={() => {
+              playClick();
+              onNextLevel();
+            }}
+            onMouseEnter={playHover}
+          >
+            Next Level
+          </button>
+        )}
         
         <button
           className="menuButton secondaryButton"

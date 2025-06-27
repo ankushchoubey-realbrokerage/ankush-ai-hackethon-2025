@@ -504,8 +504,16 @@ export class GameEngine {
     // STEP 28: Update 3D audio listener position to match player
     this.audioManager.updateListenerPosition(this.player.getPosition(), this.player.getAimDirection());
     
-    // Update zombies
+    // Update zombies and remove dead ones
     this.zombieManager.update(deltaTime, this.player.getPosition());
+    
+    // Remove dead zombies
+    const zombies = this.zombieManager.getZombies();
+    zombies.forEach(zombie => {
+      if (zombie.isDead && !zombie.active) {
+        this.zombieManager.removeZombie(zombie.id);
+      }
+    });
     
     // STEP 40: Update boss manager
     this.bossManager.update(deltaTime, this.player.getPosition());
@@ -528,11 +536,20 @@ export class GameEngine {
     // STEP 31: Update level loader (weapon pickups animation)
     this.updateLevelLoader(deltaTime);
     
-    // STEP 31: Check win conditions
+    // STEP 31: Check win conditions and wave completion
     if (this.checkWinConditions()) {
       console.log('Level completed!');
       // Trigger level completion logic
       this.onLevelComplete();
+    } else {
+      // Check if wave is complete to spawn next wave
+      const activeZombies = this.zombieManager.getZombies().filter(z => !z.isDead);
+      if (this.levelManager.isWaveComplete() && activeZombies.length === 0 && this.levelManager.hasMoreWaves()) {
+        console.log('Wave complete, starting next wave');
+        setTimeout(() => {
+          this.levelManager.startNextWave();
+        }, 2000); // 2 second delay between waves
+      }
     }
     
     // STEP 31: Debug level loading
@@ -975,6 +992,9 @@ export class GameEngine {
             store.addScore(10); // 10 points per zombie
             store.incrementZombiesKilled();
             console.log(`Score after: ${store.gameStats.score}, Zombies killed: ${store.gameStats.zombiesKilled}`);
+            
+            // Notify level manager about zombie death
+            this.levelManager.onZombieKilled();
           }
           
           // STEP 29: Create explosion effect using particle system
@@ -1362,10 +1382,9 @@ export class GameEngine {
    * Handle level completion
    */
   private onLevelComplete(): void {
-    // Pause the game
-    this.pause();
-    
-    // Show level complete UI
+    console.log('Level complete!');
+    const store = useGameStore.getState();
+    store.levelComplete();
     console.log('Level Complete! Score:', useGameStore.getState().gameStats.score);
     
     // Transition to next level after a delay

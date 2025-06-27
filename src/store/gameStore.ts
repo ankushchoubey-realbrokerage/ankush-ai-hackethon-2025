@@ -20,6 +20,7 @@ interface GameStore {
   pauseGame: () => void;
   resumeGame: () => void;
   gameOver: () => void;
+  levelComplete: () => void;
   returnToMenu: () => void;
   
   // Stat update actions
@@ -99,6 +100,11 @@ export const useGameStore = create<GameStore>()(
         previousState: 'playing' 
       }),
       
+      levelComplete: () => set({ 
+        gameState: 'levelComplete',
+        previousState: 'playing' 
+      }),
+      
       returnToMenu: () => set({ 
         gameState: 'menu',
         previousState: get().gameState 
@@ -148,4 +154,5 @@ export const useGameState = () => useGameStore((state) => state.gameState);
 export const useIsPlaying = () => useGameStore((state) => state.gameState === 'playing');
 export const useIsPaused = () => useGameStore((state) => state.gameState === 'paused');
 export const useIsGameOver = () => useGameStore((state) => state.gameState === 'gameOver');
+export const useIsLevelComplete = () => useGameStore((state) => state.gameState === 'levelComplete');
 export const useIsInMenu = () => useGameStore((state) => state.gameState === 'menu');

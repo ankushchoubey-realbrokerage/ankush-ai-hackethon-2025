@@ -3,6 +3,7 @@ import { LevelData } from '../../types/level.types';
 import { levelConfigs } from '../maps/levelConfigs';
 import { ZombieManager } from '../../entities/enemies/ZombieManager';
 import { VolcanoMap } from '../maps/VolcanoMap';
+import { useGameStore } from '../../store/gameStore';
 import * as THREE from 'three';
 
 export class LevelManager {
@@ -13,6 +14,7 @@ export class LevelManager {
   private remainingZombiesInWave: number = 0;
   private currentMap: VolcanoMap | null = null;
   private scene: THREE.Scene | null = null;
+  private totalZombiesInWave: number = 0;
 
   public setScene(scene: THREE.Scene): void {
     this.scene = scene;
@@ -68,6 +70,7 @@ export class LevelManager {
     console.log(`[LevelManager.spawnWave] Spawning wave with ${wave.zombieCount} zombies`);
     console.log(`[LevelManager.spawnWave] Zombie types:`, wave.zombieTypes);
     this.remainingZombiesInWave = wave.zombieCount;
+    this.totalZombiesInWave = wave.zombieCount;
     
     const spawnPoints = this.currentLevel.spawnPoints;
     console.log(`[LevelManager.spawnWave] Available spawn points:`, spawnPoints);
@@ -139,5 +142,30 @@ export class LevelManager {
   // STEP 35: Get current map
   public getCurrentMap(): VolcanoMap | null {
     return this.currentMap;
+  }
+  
+  public onZombieKilled(): void {
+    if (this.remainingZombiesInWave > 0) {
+      this.remainingZombiesInWave--;
+      console.log(`[LevelManager] Zombie killed. Remaining in wave: ${this.remainingZombiesInWave}`);
+      
+      // Check if wave is complete
+      if (this.remainingZombiesInWave === 0) {
+        this.isWaveActive = false;
+        console.log('[LevelManager] Wave complete!');
+        
+        // Update wave number in game store
+        const store = useGameStore.getState();
+        store.setWaveNumber(this.currentWaveIndex + 1);
+      }
+    }
+  }
+  
+  public isWaveComplete(): boolean {
+    return !this.isWaveActive && this.remainingZombiesInWave === 0;
+  }
+  
+  public getRemainingZombiesInWave(): number {
+    return this.remainingZombiesInWave;
   }
 }
