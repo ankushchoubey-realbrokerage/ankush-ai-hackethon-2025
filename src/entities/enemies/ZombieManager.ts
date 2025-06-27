@@ -1,32 +1,63 @@
 import * as THREE from 'three';
-import { Zombie, Vector3 } from '../../types';
+import { Vector3 } from '../../types';
+import { Zombie } from './Zombie';
 
 export class ZombieManager {
   private zombies: Map<string, Zombie> = new Map();
   private scene: THREE.Scene | null = null;
-  private zombieIdCounter: number = 0;
+  private physicsEngine: any = null;
 
   public setScene(scene: THREE.Scene): void {
     this.scene = scene;
   }
+  
+  public setPhysicsEngine(physicsEngine: any): void {
+    this.physicsEngine = physicsEngine;
+  }
 
-  public spawnZombie(position: Vector3, type: Zombie['zombieType'] = 'basic'): void {
-    // This will be implemented in later steps
+  public spawnZombie(position: Vector3): void {
+    if (!this.scene) return;
+    
+    const zombie = new Zombie(position);
+    this.zombies.set(zombie.id, zombie);
+    
+    // Add to scene
+    this.scene.add(zombie.getMesh());
+    
+    // Register with physics engine
+    if (this.physicsEngine) {
+      this.physicsEngine.addEntity(zombie);
+    }
   }
 
   public update(deltaTime: number, playerPosition: Vector3): void {
+    const toRemove: string[] = [];
+    
     this.zombies.forEach(zombie => {
       // Update zombie AI and movement
-      // This will be implemented in later steps
+      zombie.update(deltaTime, playerPosition);
+      
+      // Mark dead zombies for removal
+      if (zombie.isDead) {
+        toRemove.push(zombie.id);
+      }
     });
+    
+    // Remove dead zombies
+    toRemove.forEach(id => this.removeZombie(id));
   }
 
   public removeZombie(zombieId: string): void {
     const zombie = this.zombies.get(zombieId);
-    if (zombie && this.scene) {
-      // Remove from scene
-      this.zombies.delete(zombieId);
+    if (zombie) {
+      if (this.scene) {
+        this.scene.remove(zombie.getMesh());
+      }
+      if (this.physicsEngine) {
+        this.physicsEngine.removeEntity(zombie.id);
+      }
     }
+    this.zombies.delete(zombieId);
   }
 
   public getZombies(): Zombie[] {

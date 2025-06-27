@@ -104,6 +104,7 @@ export class GameEngine {
     
     // Set scene for managers that need it
     this.zombieManager.setScene(this.scene);
+    this.zombieManager.setPhysicsEngine(this.physicsEngine);
     this.projectileManager.setScene(this.scene);
     this.projectileManager.setPhysicsEngine(this.physicsEngine);
     
@@ -121,6 +122,9 @@ export class GameEngine {
     
     // Add test obstacles for collision testing
     this.createTestObstacles();
+    
+    // Spawn a test zombie
+    this.zombieManager.spawnZombie({ x: 10, y: 0, z: 10 });
     
     // Add reference markers for testing (smaller, less intrusive)
     const markerGeometry = new THREE.SphereGeometry(0.3, 16, 16);
@@ -224,7 +228,11 @@ export class GameEngine {
     this.projectileManager.update(deltaTime);
     
     // Check projectile collisions
-    this.checkProjectileCollisions();
+    if (this.checkProjectileCollisions) {
+      this.checkProjectileCollisions();
+    } else {
+      console.error('checkProjectileCollisions method not found!');
+    }
     
     // Update physics
     this.physicsEngine.update(deltaTime);

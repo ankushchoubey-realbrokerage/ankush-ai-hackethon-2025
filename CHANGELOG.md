@@ -1,5 +1,57 @@
 # Changelog
 
+## Step 15: Basic Zombie Entity - Completed ✅
+
+### Features Added
+1. **Zombie Class**
+   - Complete Zombie entity implementing IZombie interface
+   - Health system (100 HP)
+   - Movement velocity and speed (2 units/second)
+   - Attack properties (damage, range, cooldown)
+   - Bounding box for collision detection
+
+2. **Zombie Mesh Design**
+   - Dark green body cube (0.8x1x0.8)
+   - Lighter green head cube (0.6x0.6x0.6)
+   - Glowing red eyes for menacing look
+   - Simple arm boxes with slight outward angle
+   - Shadow casting and receiving enabled
+
+3. **Single Zombie Spawn**
+   - Test zombie spawns at position (10, 0, 10)
+   - Automatically added to scene
+   - Registered with physics engine
+   - Ready for AI and movement
+
+4. **Zombie Rendering**
+   - Proper 3D mesh hierarchy
+   - Distinct visual design from player
+   - Shadows for depth perception
+   - Emissive red eyes for visibility
+
+### Technical Implementation
+- Zombie entity with full lifecycle management
+- ZombieManager updated to handle spawning
+- Physics engine integration
+- Scene management for visuals
+- Proper entity removal on death
+
+### Visual Design
+- Dark green color scheme (#2d5016, #3a6b1e)
+- Humanoid cube design
+- Glowing red eyes
+- Arms positioned for aggressive stance
+- Clear visual distinction from player
+
+### System Integration
+- Automatic physics registration
+- Scene addition/removal
+- Update loop integration
+- Death state handling
+- Ready for AI implementation
+
+---
+
 ## Step 14: Projectile System - Completed ✅
 
 ### Features Added
