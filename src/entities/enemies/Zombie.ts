@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Zombie as IZombie, Vector3 } from '../../types';
+import { AudioManager } from '../../core/audio/AudioManager';
 
 export class Zombie implements IZombie {
   id: string;
@@ -26,6 +27,12 @@ export class Zombie implements IZombie {
   lastAttackTime: number = 0;
   
   private mesh: THREE.Group;
+  private audioManager: AudioManager | null = null;
+  
+  // STEP 28: Zombie sound properties
+  private groanTimer: number = 0;
+  private groanInterval: number = 3 + Math.random() * 2; // 3-5 seconds
+  private hasPlayedDeathSound: boolean = false;
   
   constructor(position: Vector3) {
     this.id = `zombie-${Date.now()}-${Math.random()}`;
@@ -101,6 +108,16 @@ export class Zombie implements IZombie {
   public update(deltaTime: number, playerPosition: Vector3): void {
     if (this.isDead) return;
     
+    // STEP 28: Update groan timer and play periodic groans
+    if (this.audioManager) {
+      this.groanTimer += deltaTime;
+      if (this.groanTimer >= this.groanInterval) {
+        this.audioManager.playRandomSound3D('zombie_groan', 3, this.transform.position, 0.3);
+        this.groanTimer = 0;
+        this.groanInterval = 3 + Math.random() * 2; // Reset with new random interval
+      }
+    }
+    
     // Simple AI: move toward player
     const dx = playerPosition.x - this.transform.position.x;
     const dz = playerPosition.z - this.transform.position.z;
@@ -138,6 +155,12 @@ export class Zombie implements IZombie {
       this.health = 0;
       this.isDead = true;
       this.active = false;
+      
+      // STEP 28: Play death sound
+      if (this.audioManager && !this.hasPlayedDeathSound) {
+        this.audioManager.playRandomSound3D('zombie_death', 2, this.transform.position, 0.5);
+        this.hasPlayedDeathSound = true;
+      }
     }
   }
   
@@ -148,6 +171,11 @@ export class Zombie implements IZombie {
   
   public attack(): void {
     this.lastAttackTime = Date.now();
+    
+    // STEP 28: Play attack sound
+    if (this.audioManager) {
+      this.audioManager.playSound3D('zombie_attack', this.transform.position, 0.4);
+    }
   }
   
   public getMesh(): THREE.Group {
@@ -163,5 +191,10 @@ export class Zombie implements IZombie {
     const dz = targetPosition.z - this.transform.position.z;
     const distance = Math.sqrt(dx * dx + dz * dz);
     return distance <= this.attackRange;
+  }
+  
+  // STEP 28: Set audio manager reference
+  public setAudioManager(audioManager: AudioManager): void {
+    this.audioManager = audioManager;
   }
 }

@@ -1,4 +1,5 @@
 import { Howl, Howler, HowlOptions } from 'howler';
+import { Vector3 } from '../../types';
 
 // STEP 26: Audio Manager Setup
 
@@ -34,6 +35,28 @@ export class AudioManager {
     pistol_fire: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
     // Machine gun sound: rapid, continuous
     machine_gun_fire: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA'
+  };
+
+  // STEP 28: Zombie sound placeholder data (lower frequency for groans)
+  private static readonly ZOMBIE_SOUNDS = {
+    // Zombie groan variations
+    zombie_groan_1: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    zombie_groan_2: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    zombie_groan_3: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // Zombie death variations
+    zombie_death_1: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    zombie_death_2: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA',
+    // Zombie attack
+    zombie_attack: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBgYODhYWHh4mJi4uNjY+PkZGTk5WVl5eZmZubnd2fn6Gio6Slpqepqaqrra2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA'
+  };
+
+  // 3D audio configuration
+  private static readonly SPATIAL_CONFIG = {
+    refDistance: 5,      // Distance at which volume is 100%
+    maxDistance: 30,     // Maximum distance sound can be heard
+    rolloffFactor: 1.5,  // How quickly volume decreases with distance
+    panningModel: 'HRTF' as PanningModelType,
+    distanceModel: 'exponential' as DistanceModelType
   };
 
   constructor() {
@@ -350,5 +373,129 @@ export class AudioManager {
       AudioManager.instance = new AudioManager();
     }
     return AudioManager.instance;
+  }
+
+  /**
+   * STEP 28: Play a 3D spatial sound at a specific position
+   */
+  public playSound3D(name: string, position: Vector3, volume?: number, listenerPosition?: Vector3): number | undefined {
+    const sound = this.sounds.get(name);
+    if (!sound) {
+      console.warn(`Sound not found: ${name}`);
+      return undefined;
+    }
+
+    // Play the sound
+    const id = this.playSound(name, volume);
+    if (id === undefined) return undefined;
+
+    // Set 3D position
+    sound.pos(position.x, position.y, position.z, id);
+    
+    // Update listener position if provided
+    if (listenerPosition) {
+      Howler.pos(listenerPosition.x, listenerPosition.y, listenerPosition.z);
+    }
+
+    return id;
+  }
+
+  /**
+   * Update 3D position of a playing sound
+   */
+  public updateSoundPosition(name: string, id: number, position: Vector3): void {
+    const sound = this.sounds.get(name);
+    if (!sound) return;
+
+    sound.pos(position.x, position.y, position.z, id);
+  }
+
+  /**
+   * Update the listener position (usually the player's position)
+   */
+  public updateListenerPosition(position: Vector3, orientation?: Vector3): void {
+    Howler.pos(position.x, position.y, position.z);
+    
+    if (orientation) {
+      // Howler uses a different orientation format: [x, y, z, upX, upY, upZ]
+      // We'll use the orientation as forward direction and Y-up
+      Howler.orientation(orientation.x, orientation.y, orientation.z, 0, 1, 0);
+    }
+  }
+
+  /**
+   * Play a random sound from a group
+   */
+  public playRandomSound(baseName: string, count: number, volume?: number): number | undefined {
+    const randomIndex = Math.floor(Math.random() * count) + 1;
+    const soundName = `${baseName}_${randomIndex}`;
+    return this.playSound(soundName, volume);
+  }
+
+  /**
+   * Play a random 3D sound from a group
+   */
+  public playRandomSound3D(baseName: string, count: number, position: Vector3, volume?: number): number | undefined {
+    const randomIndex = Math.floor(Math.random() * count) + 1;
+    const soundName = `${baseName}_${randomIndex}`;
+    return this.playSound3D(soundName, position, volume);
+  }
+
+  /**
+   * STEP 28: Initialize zombie sounds with 3D spatial configuration
+   */
+  public async initializeZombieSounds(): Promise<void> {
+    try {
+      // Load zombie groan variations
+      for (let i = 1; i <= 3; i++) {
+        await this.loadSound(`zombie_groan_${i}`, {
+          src: [(AudioManager.ZOMBIE_SOUNDS as any)[`zombie_groan_${i}`]],
+          volume: 0.3,
+          pool: 3,
+          preload: true,
+          // 3D spatial audio settings
+          spatial: true,
+          refDistance: AudioManager.SPATIAL_CONFIG.refDistance,
+          maxDistance: AudioManager.SPATIAL_CONFIG.maxDistance,
+          rolloffFactor: AudioManager.SPATIAL_CONFIG.rolloffFactor,
+          panningModel: AudioManager.SPATIAL_CONFIG.panningModel,
+          distanceModel: AudioManager.SPATIAL_CONFIG.distanceModel
+        }, 'zombie');
+      }
+
+      // Load zombie death variations
+      for (let i = 1; i <= 2; i++) {
+        await this.loadSound(`zombie_death_${i}`, {
+          src: [(AudioManager.ZOMBIE_SOUNDS as any)[`zombie_death_${i}`]],
+          volume: 0.5,
+          pool: 5,
+          preload: true,
+          spatial: true,
+          refDistance: AudioManager.SPATIAL_CONFIG.refDistance,
+          maxDistance: AudioManager.SPATIAL_CONFIG.maxDistance,
+          rolloffFactor: AudioManager.SPATIAL_CONFIG.rolloffFactor,
+          panningModel: AudioManager.SPATIAL_CONFIG.panningModel,
+          distanceModel: AudioManager.SPATIAL_CONFIG.distanceModel
+        }, 'zombie');
+      }
+
+      // Load zombie attack sound
+      await this.loadSound('zombie_attack', {
+        src: [AudioManager.ZOMBIE_SOUNDS.zombie_attack],
+        volume: 0.4,
+        pool: 5,
+        preload: true,
+        spatial: true,
+        refDistance: AudioManager.SPATIAL_CONFIG.refDistance * 0.7, // Closer range for attacks
+        maxDistance: AudioManager.SPATIAL_CONFIG.maxDistance * 0.5,
+        rolloffFactor: AudioManager.SPATIAL_CONFIG.rolloffFactor,
+        panningModel: AudioManager.SPATIAL_CONFIG.panningModel,
+        distanceModel: AudioManager.SPATIAL_CONFIG.distanceModel
+      }, 'zombie');
+
+      console.log('Zombie sounds initialized successfully with 3D spatial audio');
+    } catch (error) {
+      console.error('Failed to initialize zombie sounds:', error);
+    }
   }
 }

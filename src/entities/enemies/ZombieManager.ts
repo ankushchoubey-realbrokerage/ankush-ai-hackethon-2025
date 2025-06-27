@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { Vector3 } from '../../types';
 import { Zombie } from './Zombie';
+import { AudioManager } from '../../core/audio/AudioManager';
 
 export class ZombieManager {
   private zombies: Map<string, Zombie> = new Map();
   private scene: THREE.Scene | null = null;
   private physicsEngine: any = null;
+  private audioManager: AudioManager | null = null; // STEP 28: Audio manager reference
 
   public setScene(scene: THREE.Scene): void {
     this.scene = scene;
@@ -15,11 +17,21 @@ export class ZombieManager {
     this.physicsEngine = physicsEngine;
   }
 
+  // STEP 28: Set audio manager reference
+  public setAudioManager(audioManager: AudioManager): void {
+    this.audioManager = audioManager;
+  }
+
   public spawnZombie(position: Vector3): void {
     if (!this.scene) return;
     
     const zombie = new Zombie(position);
     this.zombies.set(zombie.id, zombie);
+    
+    // STEP 28: Pass audio manager to zombie
+    if (this.audioManager) {
+      zombie.setAudioManager(this.audioManager);
+    }
     
     // Add to scene
     this.scene.add(zombie.getMesh());

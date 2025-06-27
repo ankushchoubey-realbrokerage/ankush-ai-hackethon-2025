@@ -105,6 +105,7 @@ export class GameEngine {
     // Set scene for managers that need it
     this.zombieManager.setScene(this.scene);
     this.zombieManager.setPhysicsEngine(this.physicsEngine);
+    this.zombieManager.setAudioManager(this.audioManager); // STEP 28: Set audio manager
     this.projectileManager.setScene(this.scene);
     this.projectileManager.setPhysicsEngine(this.physicsEngine);
     
@@ -227,6 +228,9 @@ export class GameEngine {
     // Update camera to follow player
     this.sceneManager.updateCameraPosition(this.player.getPosition());
     
+    // STEP 28: Update 3D audio listener position to match player
+    this.audioManager.updateListenerPosition(this.player.getPosition(), this.player.getAimDirection());
+    
     // Update zombies
     this.zombieManager.update(deltaTime, this.player.getPosition());
     
@@ -305,6 +309,9 @@ export class GameEngine {
       
       // STEP 27: Initialize weapon sounds
       await this.audioManager.initializeWeaponSounds();
+      
+      // STEP 28: Initialize zombie sounds
+      await this.audioManager.initializeZombieSounds();
       
     } catch (error) {
       console.error('Failed to initialize audio:', error);
