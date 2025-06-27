@@ -12,6 +12,7 @@ import { PerformanceMonitor } from '../../utils/PerformanceMonitor';
 import { CollisionDebugger } from '../../utils/CollisionDebugger';
 import { useGameStore } from '../../store/gameStore';
 import { useWeaponStore } from '../../store/weaponStore';
+import { ParticleSystem } from '../../effects/ParticleSystem';
 
 export class GameEngine {
   private renderer: THREE.WebGLRenderer;
@@ -37,6 +38,9 @@ export class GameEngine {
   private performanceMonitor: PerformanceMonitor;
   private collisionDebugger: CollisionDebugger;
   private onGameOver: () => void;
+  
+  // STEP 29: Particle System
+  private particleSystem: ParticleSystem;
 
   constructor(container: HTMLElement, onGameOver: () => void) {
     this.container = container;
@@ -95,6 +99,9 @@ export class GameEngine {
     // Initialize collision debugger
     this.collisionDebugger = new CollisionDebugger(this.scene);
     
+    // STEP 29: Initialize particle system
+    this.particleSystem = new ParticleSystem(this.scene, 1000);
+    
     this.init();
   }
 
@@ -120,6 +127,11 @@ export class GameEngine {
     
     // STEP 27: Set audio manager reference for player
     this.player.setAudioManager(this.audioManager);
+    
+    // STEP 29: Set particle system references
+    this.player.setParticleSystem(this.particleSystem);
+    this.zombieManager.setParticleSystem(this.particleSystem);
+    this.projectileManager.setParticleSystem(this.particleSystem);
     
     // STEP 26: Initialize audio system with test sound
     this.initializeAudio();
@@ -251,6 +263,9 @@ export class GameEngine {
     // Update physics
     this.physicsEngine.update(deltaTime);
     
+    // STEP 29: Update particle system
+    this.particleSystem.update(deltaTime);
+    
     // Update collision debug visualization
     if (this.collisionDebugger.isEnabled()) {
       // Update player debug box
@@ -348,6 +363,8 @@ export class GameEngine {
     this.inputManager.destroy();
     this.audioManager.destroy();
     this.performanceMonitor.destroy();
+    // STEP 29: Dispose particle system
+    this.particleSystem.dispose();
     this.renderer.dispose();
     this.container.removeChild(this.renderer.domElement);
   }
@@ -481,8 +498,80 @@ export class GameEngine {
         }
       });
       
+      if (hitSomething) {
+        // Apply damage to hit entities
+        collisions.forEach(entity => {
+          // Skip the owner and other projectiles
+          if (entity.id === projectile.ownerId || entity.type === 'projectile') return;
+          
+          // If it's a zombie, apply damage and create blood effect
+          if (entity.type === 'zombie') {
+            const zombie = this.zombieManager.getZombie(entity.id);
+            if (zombie && !zombie.isDead) {
+              zombie.takeDamage(projectile.damage);
+              
+              // STEP 29: Create blood splatter effect
+              if (this.particleSystem) {
+                const hitPosition = projectile.transform.position;
+                const direction = {
+                  x: projectile.velocity.x,
+                  y: projectile.velocity.y,
+                  z: projectile.velocity.z
+                };
+                
+                // Normalize direction
+                const length = Math.sqrt(direction.x * direction.x + direction.y * direction.y + direction.z * direction.z);
+                if (length > 0) {
+                  direction.x /= length;
+                  direction.y /= length;
+                  direction.z /= length;
+                }
+                
+                this.particleSystem.emit('blood', {
+                  count: 20,
+                  emitPosition: new THREE.Vector3(hitPosition.x, hitPosition.y + 0.5, hitPosition.z),
+                  emitDirection: new THREE.Vector3(direction.x, direction.y + 0.5, direction.z),
+                  spread: 0.5,
+                  speed: 3,
+                  speedVariation: 1,
+                  color: new THREE.Color(0.5, 0, 0),
+                  size: 0.1,
+                  sizeVariation: 0.05,
+                  lifetime: 1.5,
+                  lifetimeVariation: 0.5
+                });
+              }
+            }
+          }
+        });
+        
+        // STEP 29: Create explosion effect using particle system
+        if (this.particleSystem) {
+          const pos = projectile.transform.position;
+          this.particleSystem.emit('custom', {
+            count: 30,
+            emitPosition: new THREE.Vector3(pos.x, pos.y, pos.z),
+            emitDirection: new THREE.Vector3(0, 1, 0),
+            spread: Math.PI,
+            speed: 4,
+            speedVariation: 2,
+            color: new THREE.Color(1, 0.5, 0),
+            colorVariation: 0.3,
+            size: 0.2,
+            sizeVariation: 0.1,
+            lifetime: 0.5,
+            lifetimeVariation: 0.2,
+            gravity: true,
+            fadeOut: true,
+            shrink: true
+          });
+        }
+        
+        // Also create the flash effect (keep existing visual)
+        this.createExplosionEffect(projectile.transform.position);
+      
       // Also check collisions with obstacles (existing logic)
-      if (projectile.active) { // Only check if projectile hasn't hit a zombie
+      } else if (projectile.active) { // Only check if projectile hasn't hit a zombie
         const collisions = this.physicsEngine.getCollisions(projectile);
         const hitObstacle = collisions.some(entity => {
           if (entity.id === projectile.ownerId) return false;

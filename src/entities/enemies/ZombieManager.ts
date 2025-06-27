@@ -8,6 +8,7 @@ export class ZombieManager {
   private scene: THREE.Scene | null = null;
   private physicsEngine: any = null;
   private audioManager: AudioManager | null = null; // STEP 28: Audio manager reference
+  private particleSystem: any = null;
 
   public setScene(scene: THREE.Scene): void {
     this.scene = scene;
@@ -15,6 +16,14 @@ export class ZombieManager {
   
   public setPhysicsEngine(physicsEngine: any): void {
     this.physicsEngine = physicsEngine;
+  }
+  
+  public setParticleSystem(particleSystem: any): void {
+    this.particleSystem = particleSystem;
+  }
+  
+  public getZombie(id: string): Zombie | undefined {
+    return this.zombies.get(id);
   }
 
   // STEP 28: Set audio manager reference
