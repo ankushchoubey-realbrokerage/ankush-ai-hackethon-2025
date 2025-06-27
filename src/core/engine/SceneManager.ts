@@ -30,13 +30,17 @@ export class SceneManager {
   }
 
   public setupScene(): void {
-    // Set background
-    this.scene.background = new THREE.Color(0x87CEEB); // Sky blue
+    // Set up fog for depth
+    this.scene.fog = new THREE.Fog(0x87CEEB, 50, 150);
     
-    // Setup lighting
+    // Create gradient background
+    this.createGradientBackground();
+    
+    // Setup enhanced lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     this.scene.add(ambientLight);
     
+    // Main directional light (sun)
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
     directionalLight.position.set(10, 20, 10);
     directionalLight.castShadow = true;
@@ -46,25 +50,133 @@ export class SceneManager {
     directionalLight.shadow.camera.bottom = -50;
     directionalLight.shadow.mapSize.width = 2048;
     directionalLight.shadow.mapSize.height = 2048;
+    directionalLight.shadow.camera.near = 0.5;
+    directionalLight.shadow.camera.far = 500;
     this.scene.add(directionalLight);
     
-    // Add ground plane
-    const groundGeometry = new THREE.PlaneGeometry(100, 100);
+    // Add hemisphere light for better ambient lighting
+    const hemisphereLight = new THREE.HemisphereLight(0x87CEEB, 0x3a5f3a, 0.4);
+    this.scene.add(hemisphereLight);
+    
+    // Create ground with grid texture
+    this.createGroundWithGrid();
+    
+    // Add decorative elements
+    this.addSceneDecorations();
+  }
+
+  private createGradientBackground(): void {
+    // Create a gradient background using a large sphere
+    const skyGeometry = new THREE.SphereGeometry(400, 32, 32);
+    const skyMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        topColor: { value: new THREE.Color(0x87CEEB) },
+        bottomColor: { value: new THREE.Color(0xffffff) },
+        offset: { value: 33 },
+        exponent: { value: 0.6 }
+      },
+      vertexShader: `
+        varying vec3 vWorldPosition;
+        void main() {
+          vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+          vWorldPosition = worldPosition.xyz;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 topColor;
+        uniform vec3 bottomColor;
+        uniform float offset;
+        uniform float exponent;
+        varying vec3 vWorldPosition;
+        void main() {
+          float h = normalize(vWorldPosition + offset).y;
+          gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+        }
+      `,
+      side: THREE.BackSide
+    });
+    const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+    this.scene.add(sky);
+  }
+
+  private createGroundWithGrid(): void {
+    // Create ground plane with grid texture
+    const groundGeometry = new THREE.PlaneGeometry(100, 100, 50, 50);
+    
+    // Create a canvas texture for the grid
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const context = canvas.getContext('2d')!;
+    
+    // Draw base color
+    context.fillStyle = '#3a5f3a';
+    context.fillRect(0, 0, 512, 512);
+    
+    // Draw grid lines
+    context.strokeStyle = '#2a4f2a';
+    context.lineWidth = 2;
+    const gridSize = 512 / 50;
+    
+    for (let i = 0; i <= 50; i++) {
+      const pos = i * gridSize;
+      context.beginPath();
+      context.moveTo(pos, 0);
+      context.lineTo(pos, 512);
+      context.stroke();
+      
+      context.beginPath();
+      context.moveTo(0, pos);
+      context.lineTo(512, pos);
+      context.stroke();
+    }
+    
+    const gridTexture = new THREE.CanvasTexture(canvas);
+    gridTexture.wrapS = THREE.RepeatWrapping;
+    gridTexture.wrapT = THREE.RepeatWrapping;
+    
     const groundMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x3a5f3a,
+      map: gridTexture,
       roughness: 0.8,
       metalness: 0.2
     });
+    
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     this.scene.add(ground);
+  }
+
+  private addSceneDecorations(): void {
+    // Add some rocks or obstacles for visual interest
+    const rockGeometry = new THREE.DodecahedronGeometry(1.5, 0);
+    const rockMaterial = new THREE.MeshStandardMaterial({
+      color: 0x808080,
+      roughness: 1,
+      metalness: 0
+    });
     
-    // Add grid helper for development
-    const gridHelper = new THREE.GridHelper(100, 50, 0x000000, 0x000000);
-    gridHelper.material.opacity = 0.2;
-    gridHelper.material.transparent = true;
-    this.scene.add(gridHelper);
+    const rockPositions = [
+      { x: 20, y: 0.75, z: 20 },
+      { x: -25, y: 0.75, z: 15 },
+      { x: 30, y: 0.75, z: -20 },
+      { x: -20, y: 0.75, z: -25 }
+    ];
+    
+    rockPositions.forEach(pos => {
+      const rock = new THREE.Mesh(rockGeometry, rockMaterial);
+      rock.position.set(pos.x, pos.y, pos.z);
+      rock.rotation.set(
+        Math.random() * Math.PI,
+        Math.random() * Math.PI,
+        Math.random() * Math.PI
+      );
+      rock.scale.setScalar(0.5 + Math.random() * 0.5);
+      rock.castShadow = true;
+      rock.receiveShadow = true;
+      this.scene.add(rock);
+    });
   }
 
   public updateCameraPosition(playerPosition: Vector3): void {

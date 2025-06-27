@@ -8,6 +8,7 @@ import { ZombieManager } from '../../entities/enemies/ZombieManager';
 import { ProjectileManager } from '../../entities/projectiles/ProjectileManager';
 import { LevelManager } from '../../levels/level-system/LevelManager';
 import { GameStats } from '../../types';
+import { PerformanceMonitor } from '../../utils/PerformanceMonitor';
 
 export class GameEngine {
   private renderer: THREE.WebGLRenderer;
@@ -36,6 +37,7 @@ export class GameEngine {
     level: 1
   };
   
+  private performanceMonitor: PerformanceMonitor;
   private onGameOver: () => void;
 
   constructor(container: HTMLElement, onGameOver: () => void) {
@@ -43,12 +45,24 @@ export class GameEngine {
     this.onGameOver = onGameOver;
     this.clock = new THREE.Clock();
     
-    // Initialize Three.js components
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    // Initialize Three.js components with Chrome optimizations
+    this.renderer = new THREE.WebGLRenderer({ 
+      antialias: true,
+      powerPreference: "high-performance",
+      stencil: false,
+      depth: true
+    });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
-    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap at 2 for performance
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.autoUpdate = false; // Manual shadow updates for performance
+    
+    // Chrome-specific optimizations
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.0;
+    
     container.appendChild(this.renderer.domElement);
     
     this.scene = new THREE.Scene();
@@ -76,6 +90,9 @@ export class GameEngine {
     this.player = new Player();
     this.zombieManager = new ZombieManager();
     this.projectileManager = new ProjectileManager();
+    
+    // Initialize performance monitor (Chrome dev tools)
+    this.performanceMonitor = new PerformanceMonitor(true);
     
     this.init();
   }
@@ -137,6 +154,8 @@ export class GameEngine {
   private gameLoop = (): void => {
     if (!this.isRunning) return;
     
+    this.performanceMonitor.begin();
+    
     requestAnimationFrame(this.gameLoop);
     
     if (!this.isPaused) {
@@ -145,6 +164,8 @@ export class GameEngine {
     }
     
     this.render();
+    
+    this.performanceMonitor.end();
   };
 
   private update(deltaTime: number): void {
@@ -173,6 +194,11 @@ export class GameEngine {
   }
 
   private render(): void {
+    // Update shadows periodically for performance
+    if (this.clock.getElapsedTime() % 0.1 < 0.016) { // Update every ~100ms
+      this.renderer.shadowMap.needsUpdate = true;
+    }
+    
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -195,6 +221,7 @@ export class GameEngine {
     this.stop();
     this.inputManager.destroy();
     this.audioManager.destroy();
+    this.performanceMonitor.destroy();
     this.renderer.dispose();
     this.container.removeChild(this.renderer.domElement);
   }
