@@ -1,11 +1,14 @@
-import { Wave } from '../../types';
+import { Wave, Vector3 } from '../../types';
 import { LevelData } from '../../types/level.types';
 import { levelConfigs } from '../maps/levelConfigs';
+import { ZombieManager } from '../../entities/enemies/ZombieManager';
 
 export class LevelManager {
   private currentLevel: LevelData | null = null;
   private currentWaveIndex: number = 0;
   private isWaveActive: boolean = false;
+  private zombieManager: ZombieManager | null = null;
+  private remainingZombiesInWave: number = 0;
 
   public loadLevel(levelNumber: number): void {
     const level = levelConfigs.get(levelNumber);
@@ -31,9 +34,59 @@ export class LevelManager {
     this.currentWaveIndex++;
   }
 
+  public setZombieManager(zombieManager: ZombieManager): void {
+    this.zombieManager = zombieManager;
+  }
+  
   private spawnWave(wave: Wave): void {
-    // This will be implemented when zombie spawning is ready
+    if (!this.zombieManager || !this.currentLevel) {
+      console.error('Cannot spawn wave: ZombieManager or level not set');
+      return;
+    }
+    
     console.log(`Spawning wave with ${wave.zombieCount} zombies`);
+    this.remainingZombiesInWave = wave.zombieCount;
+    
+    const spawnPoints = this.currentLevel.spawnPoints;
+    
+    // Spawn zombies based on type distribution
+    for (let i = 0; i < wave.zombieCount; i++) {
+      // Select spawn point (cycle through available points)
+      const spawnPoint = spawnPoints[i % spawnPoints.length];
+      
+      // Determine zombie type based on wave configuration
+      const zombieType = this.selectZombieType(wave.zombieTypes);
+      
+      // Add small random offset to prevent stacking
+      const position: Vector3 = {
+        x: spawnPoint.x + (Math.random() - 0.5) * 2,
+        y: spawnPoint.y,
+        z: spawnPoint.z + (Math.random() - 0.5) * 2
+      };
+      
+      // Map 'basic' to 'normal' for compatibility
+      const spawnType = zombieType === 'basic' ? 'normal' : zombieType as 'normal' | 'fast';
+      
+      // Delay spawning to create wave effect
+      setTimeout(() => {
+        this.zombieManager!.spawnZombie(position, spawnType);
+      }, i * 200); // 200ms between each zombie spawn
+    }
+  }
+  
+  private selectZombieType(zombieTypes: { type: string; percentage: number }[]): string {
+    const random = Math.random() * 100;
+    let accumulated = 0;
+    
+    for (const zombieType of zombieTypes) {
+      accumulated += zombieType.percentage;
+      if (random <= accumulated) {
+        return zombieType.type;
+      }
+    }
+    
+    // Fallback to first type
+    return zombieTypes[0]?.type || 'basic';
   }
 
   public isLevelComplete(): boolean {

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Player as IPlayer, PlayerInput, Vector3 } from '../../types';
 import { Weapon } from '../../types';
 import { MouseUtils } from '../../utils/MouseUtils';
-import { Pistol } from '../../weapons';
+import { Pistol, Shotgun } from '../../weapons';
 import { AudioManager } from '../../core/audio/AudioManager';
 
 export class Player implements IPlayer {
@@ -253,27 +253,91 @@ export class Player implements IPlayer {
           z: this.transform.position.z + aimDir.z * spawnOffset
         };
         
-        // Apply weapon spread if any
-        let finalDirection = { ...aimDir };
-        if (currentWeapon.spread && currentWeapon.spread > 0) {
-          const spreadAngle = (Math.random() - 0.5) * currentWeapon.spread;
-          const cos = Math.cos(spreadAngle);
-          const sin = Math.sin(spreadAngle);
-          finalDirection = {
-            x: aimDir.x * cos - aimDir.z * sin,
-            y: 0,
-            z: aimDir.x * sin + aimDir.z * cos
-          };
+        // Check if this is a shotgun for multi-projectile handling
+        if (currentWeapon.id === 'shotgun' && currentWeapon instanceof Shotgun) {
+          // Shotgun fires multiple pellets in a spread pattern
+          const pelletsPerShot = currentWeapon.pelletsPerShot;
+          
+          for (let i = 0; i < pelletsPerShot; i++) {
+            let pelletDirection = { ...aimDir };
+            
+            if (i === 0) {
+              // Center pellet goes straight
+              pelletDirection = aimDir;
+            } else {
+              // Create spread pattern for other pellets
+              // Pattern: +X, -X, +Y, -Y directions with spread angle
+              const patternIndex = (i - 1) % 4;
+              let spreadX = 0;
+              let spreadZ = 0;
+              
+              const baseSpread = currentWeapon.spread || 0.15;
+              
+              switch (patternIndex) {
+                case 0: // Right
+                  spreadX = baseSpread;
+                  break;
+                case 1: // Left
+                  spreadX = -baseSpread;
+                  break;
+                case 2: // Forward-right diagonal
+                  spreadX = baseSpread * 0.707;
+                  spreadZ = baseSpread * 0.707;
+                  break;
+                case 3: // Forward-left diagonal
+                  spreadX = -baseSpread * 0.707;
+                  spreadZ = baseSpread * 0.707;
+                  break;
+              }
+              
+              // Apply rotation to spread
+              const cos = Math.cos(this.transform.rotation.y);
+              const sin = Math.sin(this.transform.rotation.y);
+              
+              pelletDirection = {
+                x: aimDir.x + (spreadX * cos - spreadZ * sin),
+                y: 0,
+                z: aimDir.z + (spreadX * sin + spreadZ * cos)
+              };
+              
+              // Normalize the direction
+              const length = Math.sqrt(pelletDirection.x * pelletDirection.x + pelletDirection.z * pelletDirection.z);
+              pelletDirection.x /= length;
+              pelletDirection.z /= length;
+            }
+            
+            // Create pellet projectile
+            this.projectileManager.createProjectile(
+              spawnPosition,
+              pelletDirection,
+              currentWeapon.damage,
+              currentWeapon.projectileSpeed,
+              this.id
+            );
+          }
+        } else {
+          // Normal single projectile weapons
+          let finalDirection = { ...aimDir };
+          if (currentWeapon.spread && currentWeapon.spread > 0) {
+            const spreadAngle = (Math.random() - 0.5) * currentWeapon.spread;
+            const cos = Math.cos(spreadAngle);
+            const sin = Math.sin(spreadAngle);
+            finalDirection = {
+              x: aimDir.x * cos - aimDir.z * sin,
+              y: 0,
+              z: aimDir.x * sin + aimDir.z * cos
+            };
+          }
+          
+          // Create projectile
+          this.projectileManager.createProjectile(
+            spawnPosition,
+            finalDirection,
+            currentWeapon.damage,
+            currentWeapon.projectileSpeed,
+            this.id
+          );
         }
-        
-        // Create projectile
-        this.projectileManager.createProjectile(
-          spawnPosition,
-          finalDirection,
-          currentWeapon.damage,
-          currentWeapon.projectileSpeed,
-          this.id
-        );
         
         // STEP 27: Play weapon sound
         if (this.audioManager) {
@@ -282,6 +346,8 @@ export class Player implements IPlayer {
             this.audioManager.playWeaponSound('pistol', 0.5);
           } else if (currentWeapon.id === 'machine_gun') {
             this.audioManager.playWeaponSound('machine_gun', 0.4);
+          } else if (currentWeapon.id === 'shotgun') {
+            this.audioManager.playWeaponSound('shotgun', 0.7); // Louder for shotgun
           }
         }
         
@@ -463,6 +529,22 @@ export class Player implements IPlayer {
   public switchWeapon(index: number): void {
     if (index >= 0 && index < this.weapons.length) {
       this.currentWeaponIndex = index;
+    }
+  }
+  
+  public addWeapon(weapon: Weapon): void {
+    // Check if weapon already exists
+    const existingIndex = this.weapons.findIndex(w => w.id === weapon.id);
+    if (existingIndex === -1) {
+      this.weapons.push(weapon);
+      // Auto-switch to new weapon
+      this.currentWeaponIndex = this.weapons.length - 1;
+    } else {
+      // If weapon exists, just add ammo
+      const existingWeapon = this.weapons[existingIndex];
+      if (existingWeapon.addAmmo) {
+        existingWeapon.addAmmo(weapon.maxAmmo);
+      }
     }
   }
   

@@ -158,12 +158,18 @@ export class GameEngine {
     // Add test obstacles for collision testing
     this.createTestObstacles();
     
-    // STEP 16: Spawn test zombies for movement testing
-    this.zombieManager.spawnZombie({ x: 10, y: 0, z: 10 });
-    this.zombieManager.spawnZombie({ x: -10, y: 0, z: 10 });
-    this.zombieManager.spawnZombie({ x: 10, y: 0, z: -10 });
-    this.zombieManager.spawnZombie({ x: -10, y: 0, z: -10 });
-    this.zombieManager.spawnZombie({ x: 0, y: 0, z: 15 });
+    // Connect LevelManager with ZombieManager for wave spawning
+    this.levelManager.setZombieManager(this.zombieManager);
+    
+    // STEP 33: Test mixed zombie spawning (remove in production)
+    // Spawn test zombies with mixed types for testing
+    if ((window as any).debugSpawnTestZombies) {
+      this.zombieManager.spawnZombie({ x: 10, y: 0, z: 10 }, 'normal');
+      this.zombieManager.spawnZombie({ x: -10, y: 0, z: 10 }, 'fast');
+      this.zombieManager.spawnZombie({ x: 10, y: 0, z: -10 }, 'normal');
+      this.zombieManager.spawnZombie({ x: -10, y: 0, z: -10 }, 'fast');
+      this.zombieManager.spawnZombie({ x: 0, y: 0, z: 15 }, 'fast');
+    }
     
     // Add reference markers for testing (smaller, less intrusive)
     const markerGeometry = new THREE.SphereGeometry(0.3, 16, 16);
@@ -296,6 +302,22 @@ export class GameEngine {
       const levelId = (window as any).debugLoadLevel;
       (window as any).debugLoadLevel = null;
       this.loadLevel(levelId);
+    }
+    
+    // STEP 33: Debug wave spawning
+    if ((window as any).debugStartWave) {
+      (window as any).debugStartWave = null;
+      this.levelManager.startNextWave();
+    }
+    
+    // STEP 34: Debug shotgun testing
+    if ((window as any).debugGiveShotgun) {
+      (window as any).debugGiveShotgun = null;
+      // Import Shotgun synchronously to avoid async issue
+      import('../../weapons').then(({ Shotgun }) => {
+        this.player.addWeapon(new Shotgun());
+        console.log('Shotgun added to player inventory');
+      });
     }
     
     // Update collision debug visualization
@@ -753,6 +775,12 @@ export class GameEngine {
       
       // Update level manager
       this.levelManager.setCurrentLevel(levelId);
+      
+      // Auto-start first wave after a short delay
+      setTimeout(() => {
+        console.log('Starting first wave...');
+        this.levelManager.startNextWave();
+      }, 2000); // 2 second delay before first wave
       
       // Resume game if it was running
       if (wasRunning) {
