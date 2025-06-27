@@ -18,4 +18,5 @@ export interface PlayerInput {
   mousePosition: { x: number; y: number };
   isFiring: boolean;
   weaponSwitch?: number;
+  debugCollisions?: boolean;
 }

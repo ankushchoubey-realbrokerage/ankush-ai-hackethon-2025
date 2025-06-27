@@ -185,29 +185,9 @@ export class Player implements IPlayer {
     this.velocity.x = this.currentSpeed.x;
     this.velocity.z = this.currentSpeed.z;
 
-    // Apply movement with boundaries
-    const newX = this.transform.position.x + this.velocity.x * deltaTime;
-    const newZ = this.transform.position.z + this.velocity.z * deltaTime;
-
-    // Clamp to boundaries
-    this.transform.position.x = Math.max(
-      this.boundaries.minX,
-      Math.min(this.boundaries.maxX, newX)
-    );
-    this.transform.position.z = Math.max(
-      this.boundaries.minZ,
-      Math.min(this.boundaries.maxZ, newZ)
-    );
-
-    // Stop velocity if we hit a boundary
-    if (this.transform.position.x === this.boundaries.minX || 
-        this.transform.position.x === this.boundaries.maxX) {
-      this.currentSpeed.x = 0;
-    }
-    if (this.transform.position.z === this.boundaries.minZ || 
-        this.transform.position.z === this.boundaries.maxZ) {
-      this.currentSpeed.z = 0;
-    }
+    // Apply movement (physics engine will handle boundaries and collisions)
+    this.transform.position.x += this.velocity.x * deltaTime;
+    this.transform.position.z += this.velocity.z * deltaTime;
   }
 
   private smoothAcceleration(current: number, target: number, maxDelta: number): number {

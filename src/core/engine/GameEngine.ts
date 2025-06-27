@@ -7,8 +7,9 @@ import { Player } from '../../entities/player/Player';
 import { ZombieManager } from '../../entities/enemies/ZombieManager';
 import { ProjectileManager } from '../../entities/projectiles/ProjectileManager';
 import { LevelManager } from '../../levels/level-system/LevelManager';
-import { GameStats } from '../../types';
+import { GameStats, Entity } from '../../types';
 import { PerformanceMonitor } from '../../utils/PerformanceMonitor';
+import { CollisionDebugger } from '../../utils/CollisionDebugger';
 
 export class GameEngine {
   private renderer: THREE.WebGLRenderer;
@@ -38,6 +39,7 @@ export class GameEngine {
   };
   
   private performanceMonitor: PerformanceMonitor;
+  private collisionDebugger: CollisionDebugger;
   private onGameOver: () => void;
 
   constructor(container: HTMLElement, onGameOver: () => void) {
@@ -94,6 +96,9 @@ export class GameEngine {
     // Initialize performance monitor (Chrome dev tools)
     this.performanceMonitor = new PerformanceMonitor(true);
     
+    // Initialize collision debugger
+    this.collisionDebugger = new CollisionDebugger(this.scene);
+    
     this.init();
   }
 
@@ -110,6 +115,12 @@ export class GameEngine {
     
     // Set camera reference for player aiming
     this.player.setCamera(this.camera, this.container);
+    
+    // Register player with physics engine
+    this.physicsEngine.addEntity(this.player);
+    
+    // Add test obstacles for collision testing
+    this.createTestObstacles();
     
     // Add reference markers for testing (smaller, less intrusive)
     const markerGeometry = new THREE.SphereGeometry(0.3, 16, 16);
@@ -177,6 +188,11 @@ export class GameEngine {
     // Update input
     const input = this.inputManager.getInput();
     
+    // Toggle collision debug with F2
+    if (input.debugCollisions) {
+      this.collisionDebugger.toggleDebug();
+    }
+    
     // Update player
     this.player.update(deltaTime, input);
     
@@ -191,6 +207,19 @@ export class GameEngine {
     
     // Update physics
     this.physicsEngine.update(deltaTime);
+    
+    // Update collision debug visualization
+    if (this.collisionDebugger.isEnabled()) {
+      // Update player debug box
+      this.collisionDebugger.updateDebugBox(this.player);
+      
+      // Update obstacle debug boxes
+      this.physicsEngine.getAllEntities().forEach(entity => {
+        if (entity.type === 'obstacle') {
+          this.collisionDebugger.updateDebugBox(entity);
+        }
+      });
+    }
     
     // Check game over condition
     if (this.player.isPlayerDead()) {
@@ -241,5 +270,59 @@ export class GameEngine {
 
   public getPlayer(): Player {
     return this.player;
+  }
+
+  private createTestObstacles(): void {
+    // Create some test walls/obstacles for collision testing
+    const obstacleData = [
+      { id: 'wall1', pos: { x: 15, y: 1, z: 0 }, size: { x: 2, y: 2, z: 10 } },
+      { id: 'wall2', pos: { x: -15, y: 1, z: 0 }, size: { x: 2, y: 2, z: 10 } },
+      { id: 'wall3', pos: { x: 0, y: 1, z: 15 }, size: { x: 10, y: 2, z: 2 } },
+      { id: 'wall4', pos: { x: 0, y: 1, z: -15 }, size: { x: 10, y: 2, z: 2 } },
+      { id: 'pillar1', pos: { x: 7, y: 1, z: 7 }, size: { x: 2, y: 2, z: 2 } },
+      { id: 'pillar2', pos: { x: -7, y: 1, z: -7 }, size: { x: 2, y: 2, z: 2 } }
+    ];
+
+    const obstacleMaterial = new THREE.MeshStandardMaterial({
+      color: 0x666666,
+      roughness: 0.8,
+      metalness: 0.2
+    });
+
+    obstacleData.forEach((data) => {
+      const geometry = new THREE.BoxGeometry(data.size.x, data.size.y, data.size.z);
+      const mesh = new THREE.Mesh(geometry, obstacleMaterial);
+      mesh.position.set(data.pos.x, data.pos.y, data.pos.z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      this.scene.add(mesh);
+
+      // Create entity for physics
+      const obstacle: Entity = {
+        id: data.id,
+        type: 'obstacle',
+        transform: {
+          position: { ...data.pos },
+          rotation: { x: 0, y: 0, z: 0 },
+          scale: { x: 1, y: 1, z: 1 }
+        },
+        boundingBox: {
+          min: { 
+            x: -data.size.x / 2, 
+            y: -data.size.y / 2, 
+            z: -data.size.z / 2 
+          },
+          max: { 
+            x: data.size.x / 2, 
+            y: data.size.y / 2, 
+            z: data.size.z / 2 
+          }
+        },
+        active: true
+      };
+
+      // Add as static entity to physics
+      this.physicsEngine.addEntity(obstacle, true);
+    });
   }
 }

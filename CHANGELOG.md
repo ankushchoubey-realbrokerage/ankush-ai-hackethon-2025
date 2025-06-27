@@ -1,5 +1,48 @@
 # Changelog
 
+## Step 9: Basic Collision System - Completed ✅
+
+### Features Added
+1. **AABB Collision Detection**
+   - Full Axis-Aligned Bounding Box implementation
+   - CollisionInfo interface with entity, normal vector, and penetration depth
+   - Accurate collision detection between all entities
+   - World-space bounding box calculations
+
+2. **Entity Collision System**
+   - Dynamic entities (player, projectiles) tracked separately
+   - Static entities (walls, obstacles) for optimization
+   - Collision detection between all entity types
+   - Proper collision response with push-out method
+
+3. **World Boundaries Collision**
+   - World bounds set to -45 to 45 on X/Z axes
+   - Automatic constraint to world boundaries
+   - No clipping through world edges
+   - Smooth boundary collision handling
+
+4. **Collision Testing & Debugging**
+   - CollisionDebugger utility for visual debugging
+   - F2 key toggles collision box visualization
+   - Color-coded boxes (green=player, red=obstacles)
+   - Test obstacles created (walls and pillars)
+   - Verified player-wall collisions working correctly
+
+### Technical Implementation
+- Enhanced PhysicsEngine with detailed collision system
+- Separation of static and dynamic entities for performance
+- Collision resolution using normal vectors and penetration depth
+- World-space transformations for accurate detection
+- Push-out method prevents entity overlap
+
+### Test Obstacles
+- 4 boundary walls at edges of play area
+- 2 pillar obstacles for interior testing
+- All obstacles properly registered with physics
+- Visual confirmation of collision prevention
+
+---
+
 ## Step 8: Mouse Aiming System - Completed ✅
 
 ### Features Added

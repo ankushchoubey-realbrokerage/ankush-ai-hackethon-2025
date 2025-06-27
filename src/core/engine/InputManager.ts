@@ -7,6 +7,7 @@ export class InputManager {
   private canvas: HTMLCanvasElement;
   private weaponSwitch: number | null = null;
   private debugMode: boolean = false;
+  private debugCollisions: boolean = false;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -46,6 +47,11 @@ export class InputManager {
     if (e.key === 'F1') {
       this.debugMode = !this.debugMode;
       console.log('Debug mode:', this.debugMode);
+    }
+    
+    // Toggle collision debug with F2
+    if (e.key === 'F2') {
+      this.debugCollisions = true;
     }
     
     // Log key presses in debug mode
@@ -88,12 +94,18 @@ export class InputManager {
       },
       mousePosition: this.mousePosition,
       isFiring: this.isFiring || (this.keys.get(' ') || false),
-      weaponSwitch: this.weaponSwitch !== null ? this.weaponSwitch : undefined
+      weaponSwitch: this.weaponSwitch !== null ? this.weaponSwitch : undefined,
+      debugCollisions: this.debugCollisions
     };
     
     // Clear weapon switch after reading
     if (this.weaponSwitch !== null) {
       this.weaponSwitch = null;
+    }
+    
+    // Clear debug collision toggle after reading
+    if (this.debugCollisions) {
+      this.debugCollisions = false;
     }
     
     return input;
